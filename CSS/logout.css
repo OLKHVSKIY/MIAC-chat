@@ -1,0 +1,13 @@
+.logout-button {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 24px;
+    cursor: pointer;
+    margin-left: auto; /* Перемещаем кнопку вправо */
+    transition: color 0.3s ease;
+}
+
+.logout-button:hover {
+    color: #FF6B35; /* Изменение цвета при наведении */
+}

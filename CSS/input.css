@@ -1,0 +1,80 @@
+.input-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    position: fixed;
+    bottom: 20px;
+    left: calc(50% + 125px);
+    transform: translateX(-50%);
+    width: 60%;
+    max-width: 800px;
+    min-width: 500px;
+    background-color: #1A1A1A;
+    padding: 10px;
+    border-radius: 25px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    z-index: 10; /* Убедитесь, что поле ввода поверх других элементов */
+}
+
+#user-input {
+    font-family: 'Roboto', sans-serif; 
+    flex: 1;
+    padding: 10px 58px 10px 10px; /* Добавляем отступ справа 50px */
+    background-color: #444;
+    border: none;
+    border-radius: 20px;
+    color: #FFFFFF;
+    font-size: 16px;
+    resize: none; /* Отключаем изменение размера вручную */
+    overflow-y: auto; /* Добавляем прокрутку, если текст превышает высоту */
+    white-space: pre-wrap; /* Перенос текста на новую строку */
+    word-wrap: break-word; /* Перенос длинных слов */
+    height: auto; /* Автоматическая высота */
+    min-height: 90px; /* Минимальная высота */
+    max-height: 150px; /* Максимальная высота */
+}
+
+#send-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FF6B35;
+    border: none;
+    border-radius: 50%;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    position: absolute;
+    right: 20px; /* Увеличиваем отступ справа */
+    top: 20px; /* Увеличиваем отступ сверху */
+}
+
+#send-btn:hover {
+    background-color: #FF4500;
+}
+
+.attach-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #444; /* Цвет фона, как у textarea */
+    border: none;
+    border-radius: 50%;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    position: absolute;
+    right: 20px; /* Отступ справа */
+    top: 70px; /* Отступ сверху (кнопка "Отправить" + отступ) */
+}
+
+.attach-button:hover {
+    background-color: #555; /* Изменение цвета при наведении */
+}

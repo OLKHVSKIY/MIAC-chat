@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIAC chat</title>
+    <link rel="stylesheet" href="/CSS/styles.css">
+    <link rel="stylesheet" href="/CSS/header.css">
+    <link rel="stylesheet" href="/CSS/sidebar.css">
+    <link rel="stylesheet" href="/CSS/chat.css">
+    <link rel="stylesheet" href="/CSS/input.css">
+    <link rel="stylesheet" href="/CSS/notification.css">
+    <link rel="icon" href="/IMG/miac_short.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <header>
+            <button id="toggle-sidebar">☰</button>
+            <div class="logo">
+                <a href="/HTML/main.html">
+                    <img style="margin-top: 10px; padding-left: 15px; width: 230px; height: 45px;" src="/IMG/miac_chat.png" alt="miac">
+                </a>
+            </div>
+            <button id="logoutButton" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </header>
+
+            <!-- Область с названием чата -->
+            <div id="chat-header">
+                <h2 id="chat-title">Название чата</h2>
+            </div>
+
+
+        <!-- Слайдбар -->
+        <aside id="sidebar">
+            <button id="new-chat">+ Новый чат</button>
+            <div id="chat-list">
+                <!-- Список чатов будет здесь -->
+            </div>
+        </aside>
+
+        <!-- Основная область -->
+        <main>
+            <!-- Контейнер для ограничения ширины чата и выравнивания по центру -->
+            <div class="chat-container">
+                <div id="chat-window">
+                    <!-- Сообщения будут здесь -->
+                </div>
+                <div class="input-container">
+                    <textarea id="user-input" placeholder="Напишите ваш запрос..."></textarea>
+                    <button id="send-btn"><i class="fas fa-arrow-up"></i></button>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                    <button id="attach-btn" class="attach-button" onclick="document.getElementById('file-input').click()">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Уведомление -->
+        <div id="notification" class="notification-hidden">Сообщение скопировано!</div>
+    </div>
+
+    <!-- Подключение скриптов -->
+    <script src="/JS/sidebar.js"></script>
+    <script src="/JS/utils.js"></script>
+    <script src="/JS/chat.js"></script>
+    <script src="/JS/message.js"></script>
+    <script src="/JS/input.js"></script>
+    <script type="module" src="/JS/main.js"></script>
+    <script src="/JS/notification.js"></script>
+    <script src="/JS/logout.js"></script>
+</body>
+</html>

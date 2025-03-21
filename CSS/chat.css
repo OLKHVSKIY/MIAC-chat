@@ -1,0 +1,102 @@
+main {
+    flex: 1;
+    padding: 80px 20px 150px; /* Увеличьте отступ снизу */
+    display: flex;
+    flex-direction: column;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+main.full-width {
+    margin-left: 0;
+}
+
+/* Контейнер для ограничения ширины чата и выравнивания по центру */
+.chat-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto; /* Выравнивание по центру */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+#chat-window {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    width: 100%;
+    word-wrap: break-word;
+    max-height: calc(100vh - 290px);
+    padding-bottom: 20px;
+}
+
+/* Стилизация скроллбара для WebKit-браузеров */
+#chat-window::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-window::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chat-window::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+#chat-window::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* Стилизация скроллбара для Firefox */
+#chat-window {
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+}
+
+.user-message {
+    background-color: #FF6B35;
+    margin-left: auto;
+}
+
+.bot-message {
+    background-color: #444;
+    margin-right: auto;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    max-width: 60vh;
+    position: relative;
+}
+
+.message .copy-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    
+    
+}
+
+.message:hover .copy-icon {
+    opacity: 1;
+}
+
+/* Стили для изображений в чате */
+.chat-image {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    margin-top: 10px;
+}

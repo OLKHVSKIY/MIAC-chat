@@ -1,0 +1,33 @@
+header {
+    background-color: #191a1d;
+    padding: 5px 25px; /* Отступы внутри шапки */
+    display: flex;
+    align-items: center;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box; /* Учитываем padding в общей ширине */
+}
+
+#toggle-sidebar {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 30px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.logout-button {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 24px;
+    cursor: pointer;
+    margin-left: auto;
+    transition: color 0.3s ease;
+}
+
+.logout-button:hover {
+    color: #FF6B35;
+}

@@ -1,0 +1,119 @@
+aside {
+    width: 250px;
+    background-color: #191a1d;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    overflow-y: hidden;
+}
+
+aside.hidden {
+    transform: translateX(-100%);
+}
+
+#new-chat {
+    width: 70%;
+    padding: 10px;
+    background-color: #FF6B35;
+    border: none;
+    border-radius: 12px;
+    color: #FFFFFF;
+    cursor: pointer;
+    margin-left: 31px;
+    margin-bottom: 30px;
+    margin-top: 20px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#new-chat:hover {
+    background-color: #FF4500;
+}
+
+#chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+    scrollbar-width: thin;
+    scrollbar-color: #555 #1A1A1A;
+}
+
+#chat-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-list::-webkit-scrollbar-track {
+    background: #1A1A1A;
+}
+
+#chat-list::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+#chat-list::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.chat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #252525;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 180px;
+}
+
+.chat-item:hover {
+    background-color: #555;
+}
+
+.chat-item.active {
+    background-color: #555;
+}
+
+.chat-item .chat-actions {
+    display: none;
+    gap: 5px;
+}
+
+.chat-item:hover .chat-actions {
+    display: flex;
+}
+
+.chat-item .chat-actions button {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.chat-item .chat-actions button:hover {
+    color: #FF6B35;
+}
+
+@media (max-width: 768px) {
+    .input-container {
+        left: 50%;
+        width: 80%;
+    }
+
+    main {
+        margin-left: 0;
+    }
+
+    aside.hidden + main .input-container {
+        left: 50%;
+    }
+}
