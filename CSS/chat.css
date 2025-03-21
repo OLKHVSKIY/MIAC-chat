@@ -28,7 +28,7 @@ main.full-width {
     margin-top: 20px;
     width: 100%;
     word-wrap: break-word;
-    max-height: calc(100vh - 290px);
+    max-height: calc(100vh - 300px);
     padding-bottom: 20px;
 }
 

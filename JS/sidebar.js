@@ -1,7 +1,7 @@
 const sidebar = document.getElementById('sidebar');
 const toggleSidebar = document.getElementById('toggle-sidebar');
 const mainContent = document.querySelector('main');
-const inputContainer = document.querySelector('.input-container');
+const inputContainer = document.querySelector('.input-container'); // Объявляем inputContainer здесь
 
 // Скрыть/показать слайдбар
 toggleSidebar.addEventListener('click', () => {

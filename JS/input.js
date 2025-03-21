@@ -1,5 +1,8 @@
 const fileInput = document.getElementById('file-input');
 
+// Используем inputContainer как глобальную переменную
+// const inputContainer = document.querySelector('.input-container'); // Уберите эту строку
+
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
@@ -44,21 +47,13 @@ function uploadImageToServer(file) {
     });
 }
 
+// Обработчик изменения высоты текстового поля
 userInput.addEventListener('input', function () {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-
-    const containerHeight = inputContainer.offsetHeight;
-    const inputHeight = this.scrollHeight;
-    const offset = inputHeight - containerHeight;
-
-    if (offset > 0) {
-        inputContainer.style.bottom = `${20 + offset}px`;
-    } else {
-        inputContainer.style.bottom = '20px';
-    }
+    this.style.height = 'auto'; // Сбрасываем высоту
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px'; // Ограничиваем максимальную высоту
 });
 
+// Обработчик нажатия клавиш
 userInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
         if (event.shiftKey) {
@@ -73,28 +68,3 @@ userInput.addEventListener('keydown', function (event) {
         }
     }
 });
-
-function sendMessage() {
-    const message = userInput.value.trim();
-
-    if (message) {
-        console.log('Отправлено:', message);
-
-        // Сохраняем переносы строки
-        const formattedMessage = message.replace(/\n/g, '<br>'); // Заменяем \n на <br>
-
-        // Добавляем сообщение в чат
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', 'user-message');
-        messageElement.innerHTML = formattedMessage; // Используем innerHTML для поддержки <br>
-        chatWindow.appendChild(messageElement);
-
-        // Очищаем поле ввода
-        userInput.value = '';
-        userInput.style.height = '90px'; // Сбрасываем высоту до минимальной
-        inputContainer.style.bottom = '20px'; // Возвращаем контейнер в исходное положение
-
-        // Прокручиваем чат вниз
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-}

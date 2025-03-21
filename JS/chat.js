@@ -107,3 +107,93 @@ function addCopyHandlers() {
         });
     });
 }
+
+// Функция для обновления названия чата по первому сообщению
+function updateChatName(chatItem, messageText) {
+    const chatName = chatItem.querySelector('span');
+
+    // Создаем временный элемент для измерения длины текста
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden'; // Скрываем элемент
+    tempSpan.style.whiteSpace = 'nowrap'; // Запрещаем перенос строк
+    tempSpan.style.fontSize = window.getComputedStyle(chatName).fontSize; // Используем тот же шрифт
+    tempSpan.style.fontFamily = window.getComputedStyle(chatName).fontFamily; // Используем тот же шрифт
+    tempSpan.textContent = messageText;
+
+    // Добавляем временный элемент в DOM
+    document.body.appendChild(tempSpan);
+
+    // Измеряем ширину текста
+    const textWidth = tempSpan.offsetWidth;
+
+    // Удаляем временный элемент
+    document.body.removeChild(tempSpan);
+
+    // Если текст превышает 190 пикселей, обрезаем его
+    if (textWidth > 190) {
+        let truncatedText = messageText;
+        while (textWidth > 190 && truncatedText.length > 0) {
+            truncatedText = truncatedText.slice(0, -1); // Удаляем последний символ
+            tempSpan.textContent = truncatedText + '..'; // Добавляем многоточие
+            document.body.appendChild(tempSpan);
+            const newWidth = tempSpan.offsetWidth;
+            document.body.removeChild(tempSpan);
+
+            if (newWidth <= 190) {
+                break;
+            }
+        }
+        chatName.textContent = truncatedText + '..';
+    } else {
+        chatName.textContent = messageText;
+    }
+}
+
+// Функция отправки сообщения
+function sendMessage() {
+    const messageText = userInput.value.trim();
+    if (messageText === '') return;
+
+    // Сообщение пользователя
+    const userMessage = document.createElement('div');
+    userMessage.classList.add('message', 'user-message');
+    userMessage.innerHTML = `
+        ${messageText}
+        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+    `;
+    chatWindow.appendChild(userMessage);
+
+    // Очистка поля ввода
+    userInput.value = '';
+
+    // Прокрутка вниз
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    // Установка флага, что сообщение отправлено
+    hasSentMessage = true;
+
+    // Если это первое сообщение в чате, обновляем название чата
+    if (activeChat && activeChat.querySelector('span').textContent === 'Новый чат') {
+        updateChatName(activeChat, messageText);
+    }
+
+    // Имитация ответа нейросети
+    setTimeout(() => {
+        const botMessage = document.createElement('div');
+        botMessage.classList.add('message', 'bot-message');
+        botMessage.innerHTML = `
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+            laboris nisi ut aliquip ex ea commodo consequat.
+            <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+        `;
+        chatWindow.appendChild(botMessage);
+
+        // Прокрутка вниз
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Добавление обработчика копирования для всех сообщений
+        addCopyHandlers();
+    }, 1000);
+}

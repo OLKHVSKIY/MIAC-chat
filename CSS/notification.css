@@ -1,21 +1,20 @@
 #notification {
     position: fixed;
-    /* top: 200px;  */
+    top: 200px; /* Уведомление появляется вверху экрана */
     left: 50%;
-    /* transform: translateX(-50%); */
-    background-color: #74706e6e;
-    color: #FFFFFF;
+    transform: translateX(-50%); /* Центрирование по горизонтали */
+    background-color: #74706e; /* Цвет фона */
+    color: #FFFFFF; /* Цвет текста */
     padding: 10px 20px;
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: opacity 0.3s ease;
-    z-index: 10000; /* Увеличьте значение, если нужно */
+    z-index: 10000; /* Убедитесь, что уведомление поверх всех элементов */
     text-align: center;
-    top: 50%; /* Временно измените для проверки */
-    transform: translate(-50%, -50%); /* Центрирование */
 }
 
 .notification-visible {
     opacity: 1;
+    display: block; /* Временно для проверки */
 }
