@@ -27,7 +27,10 @@ function createNewChat() {
         </div>
     `;
     chatList.appendChild(chatItem);
+    
+    // Сразу делаем новый чат активным и загружаем его
     setActiveChat(chatItem);
+    loadChat(chatId);
 
     // Обработчики для кнопок удаления и переименования
     const renameBtn = chatItem.querySelector('.rename-chat');
@@ -47,6 +50,32 @@ function createNewChat() {
         setActiveChat(chatItem);
         loadChat(chatId);
     });
+}
+
+function setActiveChat(chatItem) {
+    if (activeChat) {
+        activeChat.classList.remove('active');
+    }
+    chatItem.classList.add('active');
+    activeChat = chatItem;
+    
+    // Обновляем заголовок чата
+    document.getElementById('chat-title').textContent = chatItem.querySelector('span').textContent;
+}
+
+function loadChat(chatId) {
+    chatWindow.innerHTML = '';
+    const message = document.createElement('div');
+    message.classList.add('message', 'bot-message');
+    message.innerHTML = `
+        Чат создан. Начните общение!
+        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+    `;
+    chatWindow.appendChild(message);
+    addCopyHandlers();
+    
+    // Сбрасываем флаг отправки сообщения для нового чата
+    hasSentMessage = false;
 }
 
 newChatBtn.addEventListener('click', () => {
@@ -83,18 +112,6 @@ function deleteChat(chatItem) {
     }
 }
 
-function loadChat(chatId) {
-    chatWindow.innerHTML = '';
-    const message = document.createElement('div');
-    message.classList.add('message', 'bot-message');
-    message.innerHTML = `
-        Загружен чат ${chatId}.
-        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-    `;
-    chatWindow.appendChild(message);
-    addCopyHandlers();
-}
-
 function addCopyHandlers() {
     document.querySelectorAll('.copy-icon').forEach(icon => {
         icon.addEventListener('click', (e) => {
@@ -129,17 +146,17 @@ function updateChatName(chatItem, messageText) {
     // Удаляем временный элемент
     document.body.removeChild(tempSpan);
 
-    // Если текст превышает 190 пикселей, обрезаем его
-    if (textWidth > 190) {
+    // Если текст превышает 150 пикселей, обрезаем его
+    if (textWidth > 150) {
         let truncatedText = messageText;
-        while (textWidth > 190 && truncatedText.length > 0) {
+        while (textWidth > 150 && truncatedText.length > 0) {
             truncatedText = truncatedText.slice(0, -1); // Удаляем последний символ
             tempSpan.textContent = truncatedText + '..'; // Добавляем многоточие
             document.body.appendChild(tempSpan);
             const newWidth = tempSpan.offsetWidth;
             document.body.removeChild(tempSpan);
 
-            if (newWidth <= 190) {
+            if (newWidth <= 150) {
                 break;
             }
         }
