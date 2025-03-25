@@ -1,3 +1,6 @@
+const API_URL = 'http://localhost:5000'; 
+let isWaitingForResponse = false;
+
 const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat');
 window.chatWindow = document.getElementById('chat-window');
@@ -16,9 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function createNewChat() {
-    const chatId = Date.now();
+    const chatId = 'chat_' + Date.now();
     const chatItem = document.createElement('div');
     chatItem.classList.add('chat-item');
+    chatItem.dataset.id = chatId; // Добавляем ID чата
     chatItem.innerHTML = `
         <span>Новый чат</span>
         <div class="chat-actions">
@@ -167,9 +171,9 @@ function updateChatName(chatItem, messageText) {
 }
 
 // Функция отправки сообщения
-function sendMessage() {
+async function sendMessage() {
     const messageText = userInput.value.trim();
-    if (messageText === '') return;
+    if (messageText === '' || isWaitingForResponse) return;
 
     // Сообщение пользователя
     const userMessage = document.createElement('div');
@@ -182,35 +186,61 @@ function sendMessage() {
 
     // Очистка поля ввода
     userInput.value = '';
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    hasSentMessage = true;
+    isWaitingForResponse = true;
 
-    // Прокрутка вниз
+    // Показать индикатор загрузки
+    const typingIndicator = document.createElement('div');
+    typingIndicator.classList.add('message', 'bot-message', 'typing');
+    typingIndicator.innerHTML = `<div class="typing-dots"><div></div><div></div><div></div></div>`;
+    chatWindow.appendChild(typingIndicator);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 
-    // Установка флага, что сообщение отправлено
-    hasSentMessage = true;
-
-    // Если это первое сообщение в чате, обновляем название чата
+    // Если это первое сообщение в чате, обновляем название
     if (activeChat && activeChat.querySelector('span').textContent === 'Новый чат') {
         updateChatName(activeChat, messageText);
     }
 
-    // Имитация ответа нейросети
-    setTimeout(() => {
+    try {
+        const response = await fetch(`${API_URL}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: messageText,
+                chat_id: activeChat?.dataset.id || 'default'
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok || data.error) {
+            throw new Error(data.error || 'Unknown error');
+        }
+
+        // Удаляем индикатор загрузки
+        chatWindow.removeChild(typingIndicator);
+
+        // Добавляем ответ
         const botMessage = document.createElement('div');
         botMessage.classList.add('message', 'bot-message');
         botMessage.innerHTML = `
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco 
-            laboris nisi ut aliquip ex ea commodo consequat.
-            <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+            ${(data.response || '').replace(/\n/g, '<br>')}
+            <button class="copy-icon" title="Копировать">
+                <i class="fas fa-copy"></i>
+            </button>
         `;
         chatWindow.appendChild(botMessage);
 
-        // Прокрутка вниз
+    } catch (error) {
+        chatWindow.removeChild(typingIndicator);
+        const errorMessage = document.createElement('div');
+        errorMessage.classList.add('message', 'bot-message', 'error');
+        errorMessage.textContent = `Ошибка: ${error.message}`;
+        chatWindow.appendChild(errorMessage);
+    }  finally {
+        isWaitingForResponse = false;
         chatWindow.scrollTop = chatWindow.scrollHeight;
-
-        // Добавление обработчика копирования для всех сообщений
         addCopyHandlers();
-    }, 1000);
+    }
 }
