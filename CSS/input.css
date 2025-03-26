@@ -91,3 +91,27 @@
 #send-btn.stop-mode:hover {
     background-color: #cc0000;
 }
+
+/* Минималистичный скроллбар для поля ввода */
+#user-input::-webkit-scrollbar {
+    width: 4px; /* Узкий скроллбар */
+}
+
+#user-input::-webkit-scrollbar-track {
+    background: transparent; /* Прозрачный трек */
+}
+
+#user-input::-webkit-scrollbar-thumb {
+    background-color: #666; /* Цвет ползунка */
+    border-radius: 2px; /* Закругленные углы */
+}
+
+#user-input::-webkit-scrollbar-thumb:hover {
+    background-color: #888; /* Цвет при наведении */
+}
+
+/* Для Firefox */
+#user-input {
+    scrollbar-width: thin; /* Тонкий скроллбар */
+    scrollbar-color: #666 transparent; /* Цвет ползунка и трека */
+}
