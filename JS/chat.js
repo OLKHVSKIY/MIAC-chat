@@ -183,11 +183,16 @@ function updateChatName(chatItem, messageText) {
     }
 }
 
-// Функция отправки сообщения
+// Глобальная переменная для контроля генерации
+let stopGeneration = false;
+
 async function sendMessage() {
     const messageText = userInput.value.trim();
     if (messageText === '' || isWaitingForResponse) return;
 
+    // Сброс флага остановки
+    stopGeneration = false;
+    
     // Сообщение пользователя
     const userMessage = document.createElement('div');
     userMessage.classList.add('message', 'user-message');
@@ -201,6 +206,9 @@ async function sendMessage() {
     chatWindow.scrollTop = chatWindow.scrollHeight;
     hasSentMessage = true;
     isWaitingForResponse = true;
+    
+    // Меняем кнопку на "Стоп"
+    document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
 
     if (activeChat && activeChat.querySelector('span').textContent === 'Новый чат') {
         updateChatName(activeChat, messageText);
@@ -264,10 +272,10 @@ async function sendMessage() {
         // Эффект печатающегося сообщения
         const fullText = (data.response || '').replace(/\n/g, '<br>');
         let i = 0;
-        const typingSpeed = 20; // Скорость печати (меньше = быстрее)
+        const typingSpeed = 20;
         
-        function typeWriter() {
-            if (i < fullText.length) {
+        async function typeWriter() {
+            if (i < fullText.length && !stopGeneration) {
                 // Вставляем текст посимвольно перед кнопкой копирования
                 botMessage.insertBefore(
                     document.createTextNode(fullText.charAt(i)), 
@@ -275,14 +283,8 @@ async function sendMessage() {
                 );
                 i++;
                 chatWindow.scrollTop = chatWindow.scrollHeight;
-                setTimeout(typeWriter, typingSpeed);
-            } else {
-                // Добавляем обработчик копирования после завершения "печати"
-                copyButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(fullText.replace(/<br>/g, '\n'));
-                    showNotification('Сообщение скопировано!');
-                });
+                await new Promise(resolve => setTimeout(resolve, typingSpeed));
+                return typeWriter();
             }
         }
         
@@ -290,7 +292,8 @@ async function sendMessage() {
         botContainer.appendChild(botAvatar);
         botContainer.appendChild(botContent);
         chatWindow.appendChild(botContainer);
-        typeWriter();
+        
+        await typeWriter();
 
     } catch (error) {
         const errorContainer = document.createElement('div');
@@ -312,7 +315,18 @@ async function sendMessage() {
         chatWindow.appendChild(errorContainer);
     } finally {
         isWaitingForResponse = false;
+        // Возвращаем обычную кнопку
+        document.getElementById('send-btn').innerHTML = '<i class="fas fa-arrow-up"></i>';
         chatWindow.scrollTop = chatWindow.scrollHeight;
         addCopyHandlers();
     }
 }
+
+// Обработчик кнопки отправки/остановки
+document.getElementById('send-btn').addEventListener('click', function() {
+    if (isWaitingForResponse) {
+        stopGeneration = true;
+    } else {
+        sendMessage();
+    }
+});

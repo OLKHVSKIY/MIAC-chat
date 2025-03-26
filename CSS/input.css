@@ -53,10 +53,6 @@
     top: 20px; /* Увеличиваем отступ сверху */
 }
 
-#send-btn:hover {
-    background-color: #FF4500;
-}
-
 .attach-button {
     width: 40px;
     height: 40px;
@@ -77,4 +73,21 @@
 
 .attach-button:hover {
     background-color: #555; /* Изменение цвета при наведении */
+}
+
+/* Стили для кнопки отправки */
+#send-btn {
+    transition: background-color 0.3s ease;
+}
+
+#send-btn:hover {
+    background-color: #555;
+}
+
+#send-btn.stop-mode {
+    background-color: #ff4444;
+}
+
+#send-btn.stop-mode:hover {
+    background-color: #cc0000;
 }
