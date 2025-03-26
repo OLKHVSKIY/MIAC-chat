@@ -1,0 +1,25 @@
+/* Аватарка бота */
+.bot-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+    background: url('/IMG/miac_short.png') center/25px 25px no-repeat;
+    border: 1px solid #444;
+    box-sizing: border-box; /* Чтобы border не увеличивал размер элемента */
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .bot-avatar {
+        width: 28px;
+        height: 28px;
+        margin-right: 8px;
+        background-size: 23px 23px; /* Уменьшаем изображение для мобильных */
+    }
+    
+    .message {
+        max-width: 80%;
+    }
+}
