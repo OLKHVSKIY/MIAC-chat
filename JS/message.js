@@ -63,13 +63,13 @@ async function sendMessage() {
         typingContainer.appendChild(typingContent);
         chatWindow.appendChild(typingContainer);
         chatWindow.scrollTop = chatWindow.scrollHeight;
-
+        
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "codellama:7b", 
-                prompt: messageText,
+                model: "codellama:7b",
+                prompt: `Отвечай строго в markdown. SQL запросы оформляй в блоки кода с подсветкой синтаксиса:\n\n${messageText}`,
                 stream: false
             })
         });
@@ -92,6 +92,10 @@ async function sendMessage() {
         const botMessage = document.createElement('div');
         botMessage.classList.add('message', 'bot-message');
         
+        // Обрабатываем текст с выделением кода
+        const rawText = data.response || '';
+        const { text: processedText, hasCode } = window.codeHighlight.highlightCode(rawText);
+        
         // Добавляем кнопку копирования
         const copyButton = document.createElement('button');
         copyButton.classList.add('copy-icon');
@@ -100,21 +104,45 @@ async function sendMessage() {
         botMessage.appendChild(copyButton);
         
         // Эффект печатающегося сообщения
-        const fullText = (data.response || '').replace(/\n/g, '<br>');
         let i = 0;
-        const typingSpeed = 20;
+        const typingSpeed = 20; // Скорость печати (меньше = быстрее)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = processedText;
+        
+        // Создаем плоский список всех текстовых узлов и элементов
+        const allNodes = this.flattenNodes(tempDiv.childNodes);
         
         async function typeWriter() {
-            if (i < fullText.length && !stopGeneration) {
-                // Вставляем текст посимвольно перед кнопкой копирования
-                botMessage.insertBefore(
-                    document.createTextNode(fullText.charAt(i)), 
-                    copyButton
-                );
+            if (i < allNodes.length && !stopGeneration) {
+                const node = allNodes[i];
+                
+                if (node.nodeType === Node.TEXT_NODE) {
+                    // Для текстовых узлов добавляем по одному символу
+                    let text = node.textContent;
+                    for (let j = 0; j < text.length; j++) {
+                        if (stopGeneration) break;
+                        const char = text[j];
+                        const textNode = document.createTextNode(char);
+                        botMessage.insertBefore(textNode, copyButton);
+                        chatWindow.scrollTop = chatWindow.scrollHeight;
+                        await new Promise(resolve => setTimeout(resolve, typingSpeed));
+                    }
+                } else {
+                    // Для элементов (блоков кода) добавляем сразу весь блок
+                    const clone = node.cloneNode(true);
+                    botMessage.insertBefore(clone, copyButton);
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                    // Небольшая пауза после блока кода
+                    await new Promise(resolve => setTimeout(resolve, typingSpeed * 10));
+                }
+                
                 i++;
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-                await new Promise(resolve => setTimeout(resolve, typingSpeed));
                 return typeWriter();
+            } else if (i >= allNodes.length) {
+                // После завершения печати добавляем обработку кнопок копирования
+                if (hasCode) {
+                    window.codeHighlight.addCopyButtons();
+                }
             }
         }
         
@@ -150,4 +178,22 @@ async function sendMessage() {
         chatWindow.scrollTop = chatWindow.scrollHeight;
         addCopyHandlers();
     }
+}
+
+// Вспомогательная функция для "выравнивания" DOM-узлов
+function flattenNodes(nodes) {
+    const result = [];
+    nodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('code-block-wrapper')) {
+            // Блоки кода добавляем как есть
+            result.push(node);
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // Для других элементов рекурсивно обрабатываем их содержимое
+            result.push(...this.flattenNodes(node.childNodes));
+        } else if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+            // Текстовые узлы добавляем как есть
+            result.push(node);
+        }
+    });
+    return result;
 }
