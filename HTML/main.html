@@ -24,9 +24,22 @@
                     <img style="margin-top: 10px; padding-left: 15px; width: 230px; height: 45px;" src="/IMG/miac_chat.png" alt="miac">
                 </a>
             </div>
-            <button id="logoutButton" class="logout-button">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+            <div class="header-right">
+                <div class="model-selector-wrapper">
+                    <div class="model-selector" id="model-selector">
+                        <div class="selected-model">
+                            <span class="model-name">llama2</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="model-dropdown">
+                            <!-- Модели будут загружены здесь -->
+                        </div>
+                    </div>
+                </div>
+                <button id="logoutButton" class="logout-button">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
         </header>
 
             <!-- Область с названием чата -->
@@ -65,6 +78,7 @@
 
     <!-- Подключение скриптов -->
     <script src="/JS/codeHighlight.js"></script>
+    <script src="/JS/modelSelector.js"></script>
     <script src="/JS/utils.js"></script>
     <script src="/JS/chat.js"></script>
     <script src="/JS/input.js"></script>

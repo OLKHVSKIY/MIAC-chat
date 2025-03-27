@@ -1,11 +1,18 @@
 const API_URL = 'http://192.168.80.210:11434';
 let isWaitingForResponse = false;
+let currentModel = localStorage.getItem('selectedModel') || 'llama2'; // Модель по умолчанию
 
 const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat');
 window.chatWindow = document.getElementById('chat-window');
 let activeChat = null;
 let hasSentMessage = false;
+
+// Обработчик изменения модели
+document.addEventListener('modelChanged', (e) => {
+    currentModel = e.detail;
+    console.log('Текущая модель изменена на:', currentModel);
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     // Проверяем, есть ли чаты на странице
@@ -22,7 +29,7 @@ function createNewChat() {
     const chatId = 'chat_' + Date.now();
     const chatItem = document.createElement('div');
     chatItem.classList.add('chat-item');
-    chatItem.dataset.id = chatId; // Добавляем ID чата
+    chatItem.dataset.id = chatId;
     chatItem.innerHTML = `
         <span>Новый чат</span>
         <div class="chat-actions">
@@ -32,11 +39,9 @@ function createNewChat() {
     `;
     chatList.appendChild(chatItem);
     
-    // Сразу делаем новый чат активным и загружаем его
     setActiveChat(chatItem);
     loadChat(chatId);
 
-    // Обработчики для кнопок удаления и переименования
     const renameBtn = chatItem.querySelector('.rename-chat');
     const deleteBtn = chatItem.querySelector('.delete-chat');
 
@@ -63,7 +68,6 @@ function setActiveChat(chatItem) {
     chatItem.classList.add('active');
     activeChat = chatItem;
     
-    // Обновляем заголовок чата
     document.getElementById('chat-title').textContent = chatItem.querySelector('span').textContent;
 }
 
@@ -103,14 +107,6 @@ newChatBtn.addEventListener('click', () => {
     createNewChat();
 });
 
-function setActiveChat(chatItem) {
-    if (activeChat) {
-        activeChat.classList.remove('active');
-    }
-    chatItem.classList.add('active');
-    activeChat = chatItem;
-}
-
 function renameChat(chatItem) {
     const chatName = chatItem.querySelector('span');
     const newName = prompt('Введите новое название чата:', chatName.textContent);
@@ -140,33 +136,25 @@ function addCopyHandlers() {
     });
 }
 
-// Функция для обновления названия чата по первому сообщению
 function updateChatName(chatItem, messageText) {
     const chatName = chatItem.querySelector('span');
 
-    // Создаем временный элемент для измерения длины текста
     const tempSpan = document.createElement('span');
-    tempSpan.style.visibility = 'hidden'; // Скрываем элемент
-    tempSpan.style.whiteSpace = 'nowrap'; // Запрещаем перенос строк
-    tempSpan.style.fontSize = window.getComputedStyle(chatName).fontSize; // Используем тот же шрифт
-    tempSpan.style.fontFamily = window.getComputedStyle(chatName).fontFamily; // Используем тот же шрифт
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.whiteSpace = 'nowrap';
+    tempSpan.style.fontSize = window.getComputedStyle(chatName).fontSize;
+    tempSpan.style.fontFamily = window.getComputedStyle(chatName).fontFamily;
     tempSpan.textContent = messageText;
 
-    // Добавляем временный элемент в DOM
     document.body.appendChild(tempSpan);
-
-    // Измеряем ширину текста
     const textWidth = tempSpan.offsetWidth;
-
-    // Удаляем временный элемент
     document.body.removeChild(tempSpan);
 
-    // Если текст превышает 150 пикселей, обрезаем его
     if (textWidth > 150) {
         let truncatedText = messageText;
         while (textWidth > 150 && truncatedText.length > 0) {
-            truncatedText = truncatedText.slice(0, -1); // Удаляем последний символ
-            tempSpan.textContent = truncatedText + '..'; // Добавляем многоточие
+            truncatedText = truncatedText.slice(0, -1);
+            tempSpan.textContent = truncatedText + '..';
             document.body.appendChild(tempSpan);
             const newWidth = tempSpan.offsetWidth;
             document.body.removeChild(tempSpan);
@@ -181,16 +169,129 @@ function updateChatName(chatItem, messageText) {
     }
 }
 
-// Глобальная переменная для контроля генерации
 let stopGeneration = false;
 
-
-
-// Обработчик кнопки отправки/остановки
 document.getElementById('send-btn').addEventListener('click', function() {
     if (isWaitingForResponse) {
         stopGeneration = true;
+        this.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        isWaitingForResponse = false;
     } else {
         sendMessage();
     }
 });
+
+async function sendMessage() {
+    const userInput = document.getElementById('user-input');
+    const message = userInput.value.trim();
+    
+    if (!message) return;
+    
+    if (!activeChat) {
+        createNewChat();
+    }
+    
+    // Добавляем сообщение пользователя в чат
+    addMessageToChat(message, 'user');
+    userInput.value = '';
+    hasSentMessage = true;
+    
+    // Показываем индикатор "печатает"
+    const typingIndicator = addTypingIndicator();
+    
+    isWaitingForResponse = true;
+    document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
+    
+    try {
+        const response = await fetch(`${API_URL}/api/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: currentModel,
+                prompt: message,
+                stream: false // Можно изменить на true для потокового ответа
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Удаляем индикатор "печатает" и добавляем ответ
+        chatWindow.removeChild(typingIndicator);
+        addMessageToChat(data.response, 'bot');
+        
+        // Обновляем название чата по первому сообщению
+        if (!hasSentMessage) {
+            updateChatName(activeChat, message.substring(0, 30));
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+        chatWindow.removeChild(typingIndicator);
+        addMessageToChat('Произошла ошибка при обработке вашего запроса.', 'bot');
+    } finally {
+        isWaitingForResponse = false;
+        document.getElementById('send-btn').innerHTML = '<i class="fas fa-arrow-up"></i>';
+    }
+}
+
+function addMessageToChat(message, sender) {
+    const messageContainer = document.createElement('div');
+    messageContainer.classList.add('message-container');
+    
+    const avatar = document.createElement('div');
+    avatar.classList.add('avatar', sender === 'user' ? 'user-avatar' : 'bot-avatar');
+    
+    const content = document.createElement('div');
+    content.classList.add('message-content');
+    
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+    
+    // Форматируем сообщение (сохраняем переносы строк)
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    messageElement.innerHTML = `
+        ${formattedMessage}
+        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+    `;
+    
+    content.appendChild(messageElement);
+    messageContainer.appendChild(avatar);
+    messageContainer.appendChild(content);
+    chatWindow.appendChild(messageContainer);
+    
+    addCopyHandlers();
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function addTypingIndicator() {
+    const messageContainer = document.createElement('div');
+    messageContainer.classList.add('message-container');
+    
+    const avatar = document.createElement('div');
+    avatar.classList.add('avatar', 'bot-avatar');
+    
+    const content = document.createElement('div');
+    content.classList.add('message-content');
+    
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', 'bot-message', 'typing');
+    messageElement.innerHTML = `
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+    `;
+    
+    content.appendChild(messageElement);
+    messageContainer.appendChild(avatar);
+    messageContainer.appendChild(content);
+    chatWindow.appendChild(messageContainer);
+    
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    return messageContainer;
+}
