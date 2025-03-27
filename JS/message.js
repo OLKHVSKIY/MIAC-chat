@@ -68,7 +68,7 @@ async function sendMessage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "codellama:7b",
+                model: "qwen2.5:1.5b",
                 prompt: `Отвечай строго в markdown. SQL запросы оформляй в блоки кода с подсветкой синтаксиса:\n\n${messageText}`,
                 stream: false
             })

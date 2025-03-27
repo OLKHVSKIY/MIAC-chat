@@ -1,9 +1,11 @@
-// codeHighlights.js
 window.codeHighlight = {
     highlightCode: function(text) {
         if (!text) return { text: '', hasCode: false };
 
-        // Регулярки для блоков кода и inline кода
+        // Обработка заголовков (### -> <strong>)
+        text = text.replace(/^###\s+(.*$)/gm, '<strong>$1</strong>');
+
+        // Регулярки для блоков кода
         const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
         const inlineCodeRegex = /`([^`]+)`/g;
         let hasCode = false;
@@ -158,20 +160,47 @@ window.codeHighlight = {
         return code;
     },
 
-    // Добавление кнопок копирования
     addCopyButtons: function() {
         document.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
             const btn = wrapper.querySelector('.copy-code-btn');
             if (!btn.hasAttribute('data-listener')) {
                 btn.setAttribute('data-listener', 'true');
                 btn.addEventListener('click', () => {
-                    const code = wrapper.querySelector('.code-block').textContent
-                        .replace(/&nbsp;/g, ' ').replace(/<br>/g, '\n');
+                    const codeBlock = wrapper.querySelector('.code-block');
+                    let code = '';
+    
+                    const extractText = (node) => {
+                        if (node.nodeType === Node.TEXT_NODE) {
+                            code += node.textContent;
+                        } else if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.tagName === 'BR') {
+                                code += '\n';
+                            } else if (node.classList.contains('code-block')) {
+                                Array.from(node.childNodes).forEach(extractText);
+                            } else {
+                                code += node.textContent;
+                            }
+                        }
+                    };
+    
+                    extractText(codeBlock);
+    
+                    // Декодирование HTML-сущностей
+                    code = code
+                        .replace(/&nbsp;/g, ' ')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&#39;/g, "'")
+                        .replace(/&quot;/g, '"')
+                        .replace(/&amp;/g, '&');
+    
                     navigator.clipboard.writeText(code).then(() => {
                         btn.innerHTML = '<i class="fas fa-check"></i>';
                         setTimeout(() => {
                             btn.innerHTML = '<i class="fas fa-copy"></i>';
                         }, 2000);
+                    }).catch(err => {
+                        console.error('Ошибка копирования:', err);
                     });
                 });
             }
@@ -181,5 +210,7 @@ window.codeHighlight = {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    codeHighlight.addCopyButtons();
+    if (window.codeHighlight && window.codeHighlight.addCopyButtons) {
+        window.codeHighlight.addCopyButtons();
+    }
 });
