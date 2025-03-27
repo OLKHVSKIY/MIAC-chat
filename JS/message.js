@@ -63,7 +63,7 @@ async function sendMessage() {
         typingContainer.appendChild(typingContent);
         chatWindow.appendChild(typingContainer);
         chatWindow.scrollTop = chatWindow.scrollHeight;
-        
+
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -113,38 +113,54 @@ async function sendMessage() {
         const allNodes = this.flattenNodes(tempDiv.childNodes);
         
         async function typeWriter() {
-            if (i < allNodes.length && !stopGeneration) {
-                const node = allNodes[i];
+    let isScrolling = false;
+    
+    // Обработчик ручного скролла пользователем
+    chatWindow.addEventListener('scroll', () => {
+        isScrolling = true;
+    });
+
+    if (i < allNodes.length && !stopGeneration) {
+        const node = allNodes[i];
+        
+        if (node.nodeType === Node.TEXT_NODE) {
+            let text = node.textContent;
+            for (let j = 0; j < text.length; j++) {
+                if (stopGeneration) break;
                 
-                if (node.nodeType === Node.TEXT_NODE) {
-                    // Для текстовых узлов добавляем по одному символу
-                    let text = node.textContent;
-                    for (let j = 0; j < text.length; j++) {
-                        if (stopGeneration) break;
-                        const char = text[j];
-                        const textNode = document.createTextNode(char);
-                        botMessage.insertBefore(textNode, copyButton);
-                        chatWindow.scrollTop = chatWindow.scrollHeight;
-                        await new Promise(resolve => setTimeout(resolve, typingSpeed));
-                    }
-                } else {
-                    // Для элементов (блоков кода) добавляем сразу весь блок
-                    const clone = node.cloneNode(true);
-                    botMessage.insertBefore(clone, copyButton);
+                const char = text[j];
+                const textNode = document.createTextNode(char);
+                botMessage.insertBefore(textNode, copyButton);
+                
+                // Прокручиваем только если пользователь не скроллит вручную
+                if (!isScrolling) {
                     chatWindow.scrollTop = chatWindow.scrollHeight;
-                    // Небольшая пауза после блока кода
-                    await new Promise(resolve => setTimeout(resolve, typingSpeed * 10));
                 }
                 
-                i++;
-                return typeWriter();
-            } else if (i >= allNodes.length) {
-                // После завершения печати добавляем обработку кнопок копирования
-                if (hasCode) {
-                    window.codeHighlight.addCopyButtons();
-                }
+                await new Promise(resolve => setTimeout(resolve, typingSpeed));
             }
+        } else {
+            const clone = node.cloneNode(true);
+            botMessage.insertBefore(clone, copyButton);
+            
+            if (!isScrolling) {
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, typingSpeed * 10));
         }
+        
+        i++;
+        isScrolling = false; // Сбрасываем флаг после обработки узла
+        return typeWriter();
+    } else if (i >= allNodes.length) {
+        // После завершения всегда прокручиваем вниз
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        if (hasCode) {
+            window.codeHighlight.addCopyButtons();
+        }
+    }
+}
         
         botContent.appendChild(botMessage);
         botContainer.appendChild(botAvatar);

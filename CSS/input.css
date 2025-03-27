@@ -1,3 +1,15 @@
+
+#user-input:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+#user-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
 .input-container {
     display: flex;
     gap: 10px;

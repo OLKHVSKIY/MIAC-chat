@@ -135,8 +135,6 @@ function addCopyHandlers() {
             e.stopPropagation();
             const messageText = e.target.closest('.message').textContent.trim();
             navigator.clipboard.writeText(messageText).then(() => {
-                console.log('Уведомление должно появиться'); // Проверка
-                showNotification('Сообщение скопировано!'); // Вызов функции
             });
         });
     });

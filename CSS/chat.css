@@ -82,12 +82,11 @@ main.full-width {
     right: 5px;
     background: none;
     border: none;
-    color: #FFFFFF;
+    color: #d4d4d4;
     cursor: pointer;
     font-size: 14px;
     opacity: 0;
     transition: opacity 0.3s ease;
-    
     
 }
 
@@ -147,28 +146,27 @@ main.full-width {
 }
 
 /* Стили для блоков кода */
+
 .code-block-wrapper {
-    background-color: #1e1e1e;
+    background: #1e1e1e;
     border-radius: 8px;
     margin: 12px 0;
     overflow: hidden;
-    position: relative;
 }
 
 .code-header {
-    background-color: #252526;
+    background: #252526;
     padding: 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333;
+    font-family: monospace;
 }
 
 .language-label {
     color: #9cdcfe;
-    font-size: 0.85em;
-    font-family: 'Consolas', monospace;
     text-transform: uppercase;
+    font-size: 0.9em;
 }
 
 .copy-code-btn {
@@ -176,49 +174,47 @@ main.full-width {
     border: none;
     color: #d4d4d4;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.copy-code-btn:hover {
-    background-color: #3a3d41;
 }
 
 .code-block {
     color: #d4d4d4;
-    font-family: 'Consolas', monospace;
-    font-size: 0.9em;
-    margin: 0;
+    font-family: monospace;
     padding: 12px;
-    white-space: pre;
+    margin: 0;
     overflow-x: auto;
-    line-height: 1.5;
+    white-space: pre;
     tab-size: 4;
 }
 
-/* Стили для inline кода */
-.inline-code {
-    background-color: rgba(110, 118, 129, 0.4);
-    border-radius: 4px;
-    padding: 0.2em 0.4em;
-    font-family: 'Consolas', monospace;
-    font-size: 0.9em;
-    color: #e6e6e6;
-}
+/* Стили для разных языков */
+.py-keyword { color: #569cd6; }
+.py-comment { color: #6a9955; font-style: italic; }
+.py-string { color: #ce9178; }
 
-/* Подсветка синтаксиса */
 .html-tag { color: #569cd6; }
 .html-attr { color: #9cdcfe; }
+
 .css-selector { color: #d7ba7d; }
-.css-property { color: #9cdcfe; }
-.css-bracket { color: #d4d4d4; }
-.css-colon { color: #d4d4d4; }
+.css-prop { color: #9cdcfe; }
+.css-value { color: #ce9178; }
+
 .js-keyword { color: #569cd6; }
-.js-comment { color: #6a9955; }
-.py-keyword { color: #569cd6; }
-.py-comment { color: #6a9955; }
+.js-comment { color: #6a9955; font-style: italic; }
+.js-string { color: #ce9178; }
+
+.sql-keyword { color: #569cd6; font-weight: bold; }
+.sql-comment { color: #6a9955; font-style: italic; }
+
 .rs-keyword { color: #569cd6; }
-.rs-comment { color: #6a9955; }
-.sql-keyword { color: #569cd6; }
-.sql-comment { color: #6a9955; }
+.rs-comment { color: #6a9955; font-style: italic; }
+
+.php-tag { color: #569cd6; }
+.php-keyword { color: #569cd6; }
+.php-var { color: #9cdcfe; }
+
+.inline-code {
+    background: rgba(110, 118, 129, 0.4);
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    font-family: monospace;
+}
