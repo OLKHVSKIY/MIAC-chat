@@ -1,21 +1,37 @@
-const fileInput = document.getElementById('file-input');
+// input.js
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
 
-// Используем inputContainer как глобальную переменную
-// const inputContainer = document.querySelector('.input-container'); // Уберите эту строку
+    if (!fileInput || !userInput || !sendBtn) {
+        console.error('Не найдены необходимые элементы DOM');
+        return;
+    }
 
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        displayImageInChat(file);
-        uploadImageToServer(file); // Опционально: загрузка на сервер
-    } else {
-        alert('Пожалуйста, выберите изображение.');
+    fileInput.addEventListener('change', handleFileUpload);
+    userInput.addEventListener('input', adjustTextareaHeight);
+    sendBtn.addEventListener('click', handleSendMessage);
+    userInput.addEventListener('keydown', handleKeyDown);
+});
+
+document.getElementById('send-btn')?.addEventListener('click', function() {
+    if (window.sendMessage) {
+        window.sendMessage();
     }
 });
 
+function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        displayImageInChat(file);
+    } else {
+        alert('Пожалуйста, выберите изображение.');
+    }
+}
+
 function displayImageInChat(file) {
     const reader = new FileReader();
-
     reader.onload = (e) => {
         const imageUrl = e.target.result;
         const imageMessage = document.createElement('div');
@@ -26,45 +42,25 @@ function displayImageInChat(file) {
         window.chatWindow.appendChild(imageMessage);
         window.chatWindow.scrollTop = window.chatWindow.scrollHeight;
     };
-
     reader.readAsDataURL(file);
 }
 
-function uploadImageToServer(file) {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    fetch('/upload', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Изображение успешно загружено:', data);
-    })
-    .catch(error => {
-        console.error('Ошибка при загрузке изображения:', error);
-    });
+function adjustTextareaHeight() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
 }
 
-// Обработчик изменения высоты текстового поля
-userInput.addEventListener('input', function () {
-    this.style.height = 'auto'; // Сбрасываем высоту
-    this.style.height = Math.min(this.scrollHeight, 200) + 'px'; // Ограничиваем максимальную высоту
-});
-
-// Обработчик нажатия клавиш
-userInput.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-        if (event.shiftKey) {
-            event.preventDefault();
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 1;
-        } else {
-            event.preventDefault();
-            sendMessage();
-        }
+function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
     }
-});
+}
+
+function handleSendMessage() {
+    if (window.sendMessage) {
+        window.sendMessage();
+    } else {
+        console.error('Функция sendMessage не определена');
+    }
+}
