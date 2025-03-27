@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000'; 
+const API_URL = 'http://192.168.80.210:11434';
 let isWaitingForResponse = false;
 
 const chatList = document.getElementById('chat-list');
@@ -235,12 +235,13 @@ async function sendMessage() {
         chatWindow.appendChild(typingContainer);
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        const response = await fetch(`${API_URL}/chat`, {
+        const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: messageText,
-                chat_id: activeChat?.dataset.id || 'default'
+                model: "codellama:7b", 
+                prompt: messageText,
+                stream: false
             })
         });
 
