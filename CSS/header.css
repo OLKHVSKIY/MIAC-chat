@@ -155,3 +155,28 @@ header {
     margin-top: 4px;
     line-height: 1.4;
 }
+
+        /* Стилизация скроллбара для меню моделей */
+        .model-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .model-dropdown::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        
+        .model-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .model-dropdown::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Для Firefox */
+        .model-dropdown {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+        }

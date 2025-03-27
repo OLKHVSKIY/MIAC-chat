@@ -32,6 +32,7 @@ main.full-width {
     padding-bottom: 20px;
 }
 
+
 /* Стилизация скроллбара для WebKit-браузеров */
 #chat-window::-webkit-scrollbar {
     width: 8px;
