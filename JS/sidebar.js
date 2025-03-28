@@ -1,23 +1,16 @@
 const sidebar = document.getElementById('sidebar');
 const toggleSidebar = document.getElementById('toggle-sidebar');
 const mainContent = document.querySelector('main');
-const inputContainer = document.querySelector('.input-container'); // Объявляем inputContainer здесь
+const inputContainer = document.querySelector('.input-container');
 
-// Скрыть/показать слайдбар
+// Скрыть/показать слайдбар только по клику на кнопку
 toggleSidebar.addEventListener('click', () => {
     sidebar.classList.toggle('hidden');
     mainContent.classList.toggle('full-width');
     updateInputContainerPosition();
 });
 
-// Закрыть слайдбар при клике вне его области
-document.addEventListener('click', (e) => {
-    if (!sidebar.contains(e.target) && !toggleSidebar.contains(e.target)) {
-        sidebar.classList.add('hidden');
-        mainContent.classList.add('full-width');
-        updateInputContainerPosition();
-    }
-});
+// Убрали обработчик клика вне сайдбара, чтобы закрывался только по кнопке
 
 // Обновить позицию поля ввода при изменении размера окна
 window.addEventListener('resize', updateInputContainerPosition);
@@ -33,3 +26,7 @@ function updateInputContainerPosition() {
         }
     }
 }
+
+// Инициализация позиции при загрузке
+updateInputContainerPosition();
+

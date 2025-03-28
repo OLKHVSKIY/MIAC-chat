@@ -1,0 +1,124 @@
+
+/* Стили для модального окна */
+.modal-overlay {
+    font-family: 'Roboto', sans-serif;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #252525;
+    border-radius: 12px;
+    width: 800px;
+    height: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    padding: 5px 20px;
+    background-color: #191a1d;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.modal-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.modal-close {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.modal-nav {
+    width: 200px;
+    background-color: #1e1e1e;
+    padding: 20px 0;
+    border-right: 1px solid #333;
+}
+
+.nav-item {
+    padding: 12px 20px;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-item:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.modal-main {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #2d2d2d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 30px;
+    margin-right: 25px;
+    border: 2px solid #444;
+}
+
+.profile-info h3 {
+    color: #fff;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.profile-info p {
+    color: #aaa;
+    margin: 5px 0;
+    font-size: 16px;
+}
