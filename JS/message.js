@@ -69,7 +69,12 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "qwen2.5:1.5b",
-                prompt: `Отвечай строго в markdown. SQL запросы оформляй в блоки кода с подсветкой синтаксиса:\n\n${messageText}`,
+                prompt: `You are an AI assistant. Answer in Russian, except for the code. Strictly follow the rules:
+                        1. Answer general questions (planets, weather, facts) with text WITHOUT code
+                        2. Show the code (SQL/Python/HTML/CSS/Rust/JS/PHP) only when explicitly asked about code.
+                        3. Format your answers using Markdown (**bold**, *cursive*).
+                        4. Use numbering or markdowns for lists
+                        Current question: ${messageText}`,
                 stream: false
             })
         });

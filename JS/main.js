@@ -1,4 +1,8 @@
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
-    addCopyHandlers(); // Инициализация обработчиков копирования
+// main.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация приложения
+    if (window.addCopyHandlers) {
+        window.addCopyHandlers();
+    }
+
 });

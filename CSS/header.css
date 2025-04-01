@@ -128,7 +128,7 @@ header {
 }
 
 .model-option.active {
-    background-color: rgba(236, 163, 26, 0.315);
+    background-color: #ff6b3575;
 }
 
 .model-option .model-name {

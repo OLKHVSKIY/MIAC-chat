@@ -85,10 +85,21 @@ function loadChat(chatId) {
     
     const message = document.createElement('div');
     message.classList.add('message', 'bot-message');
+    
+    // Форматируем текущую дату и время
+    const now = new Date();
+    const formattedDate = [
+        String(now.getDate()).padStart(2, '0'),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        now.getFullYear()
+    ].join('.');
+    const formattedTime = [
+        String(now.getHours()).padStart(2, '0'),
+        String(now.getMinutes()).padStart(2, '0')
+    ].join(':');
+    
     message.innerHTML = `
-        Чат создан. Начните общение!
-        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-    `;
+        Чат создан: ${formattedDate} в ${formattedTime}. Начните общение!`;
     
     content.appendChild(message);
     messageContainer.appendChild(avatar);
@@ -150,16 +161,16 @@ function updateChatName(chatItem, messageText) {
     const textWidth = tempSpan.offsetWidth;
     document.body.removeChild(tempSpan);
 
-    if (textWidth > 150) {
+    if (textWidth > 180) {
         let truncatedText = messageText;
-        while (textWidth > 150 && truncatedText.length > 0) {
+        while (textWidth > 180 && truncatedText.length > 0) {
             truncatedText = truncatedText.slice(0, -1);
             tempSpan.textContent = truncatedText + '..';
             document.body.appendChild(tempSpan);
             const newWidth = tempSpan.offsetWidth;
             document.body.removeChild(tempSpan);
 
-            if (newWidth <= 150) {
+            if (newWidth <= 180) {
                 break;
             }
         }
@@ -294,4 +305,41 @@ function addTypingIndicator() {
     
     chatWindow.scrollTop = chatWindow.scrollHeight;
     return messageContainer;
+}
+
+// Пример функции для загрузки чатов
+async function loadUserChats() {
+    try {
+        const response = await fetch('http://localhost:3000/api/chats', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Ошибка загрузки чатов');
+        
+        const chats = await response.json();
+        // Отрисовка списка чатов в UI
+        renderChatList(chats);
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+// Пример функции для сохранения сообщения
+async function saveMessage(chatId, userMessage, aiMessage) {
+    try {
+        const response = await fetch('http://localhost:3000/api/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ chat_id: chatId, user_message: userMessage, ai_message: aiMessage })
+        });
+        
+        if (!response.ok) throw new Error('Ошибка сохранения сообщения');
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
 }

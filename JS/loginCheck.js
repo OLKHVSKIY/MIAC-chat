@@ -1,35 +1,33 @@
-// Проверяем наличие токена в localStorage
-const authToken = localStorage.getItem('authToken');
-
-if (!authToken) {
-  // Если токена нет, перенаправляем на страницу входа
-  window.location.href = '/login.html';
-} else {
-  // Отправляем запрос к API для проверки токена
-  fetch('/api/check_token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ 
-      token: authToken
-    })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Ответ сети был неудовлетворительным:');
-    }
-    return response.json();
-  })
-  .then(data => {
-    if (!data.token_valid) {
-      // Если токен не валиден, перенаправляем на страницу входа
-      window.location.href = '/login.html';
-    }
-  })
-  .catch(error => {
-    console.error('Возникла проблема с операцией выборки:', error);
-    // В случае ошибки также перенаправляем на страницу входа
-    window.location.href = '/login.html';
-  });
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  const authToken = localStorage.getItem('authToken');
+  
+  if (!authToken) {
+      window.location.href = 'login.html';
+      return;
+  }
+  
+  try {
+      const response = await fetch('http://localhost:3000/api/check_token', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ token: authToken })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.token_valid) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('username');
+          localStorage.removeItem('fullName');
+          window.location.href = 'login.html';
+      }
+  } catch (error) {
+      console.error('Ошибка проверки токена:', error);
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('fullName');
+      window.location.href = 'login.html';
+  }
+});
