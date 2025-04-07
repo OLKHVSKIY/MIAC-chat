@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIAC chat</title>
     <link rel="stylesheet" href="http://localhost:4000/CSS/avatar.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/notification.css">
     <link rel="stylesheet" href="http://localhost:4000/CSS/styles.css">
     <link rel="stylesheet" href="http://localhost:4000/CSS/header.css">
     <link rel="stylesheet" href="http://localhost:4000/CSS/sidebar.css">
@@ -115,6 +116,26 @@
                 </div>
             </div>
         </div>
+
+<!-- Модальное окно подтверждения выхода -->
+<div id="logoutModal" class="modal">
+    <div class="modal-exit">
+      <h3>Выход из аккаунта</h3>
+      <p>Вы уверены, что хотите выйти?</p>
+      <div class="modal-buttons">
+        <button id="confirmLogout" class="modal-btn confirm">Да, выйти</button>
+        <button id="cancelLogout" class="modal-btn cancel">Отмена</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Уведомление о выходе -->
+  <div id="logoutNotification" class="notification">
+    <div class="notification-content">
+      <p>Вы успешно вышли из аккаунта.</p>
+    </div>
+  </div>
+
     </div>
 
     <script src="http://localhost:4000/JS/utils.js"></script>

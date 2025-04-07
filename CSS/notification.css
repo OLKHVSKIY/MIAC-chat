@@ -1,0 +1,106 @@
+/* Стили для модального окна */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-exit {
+    background: #2b2a2a;
+    color: white;
+    width: 400px; /* Фиксированная ширина */
+    height: 250px; /* Фиксированная высота */
+    padding: 20px;
+    text-align: center;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Выравнивание по вертикали */
+    align-items: center; /* Выравнивание по горизонтали */
+  }
+  
+  .modal-content h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    font-family: "Gilroy", sans-serif;
+  }
+  
+  .modal-content p {
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-family: "Gilroy", sans-serif;
+  }
+  
+  .modal_exit-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .modal-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: "Gilroy", sans-serif;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    margin-bottom: 50px;
+  }
+  
+  .modal-btn.confirm {
+    background: #e58411;
+    color: white;
+  }
+  
+  .modal-btn.confirm:hover {
+    background: #d17a10;
+  }
+  
+  .modal-btn.cancel {
+    background: #2d2f33;
+    color: #e58411;
+    border: 1px solid #e58411;
+  }
+  
+  .modal-btn.cancel:hover {
+    background: rgba(229, 132, 17, 0.1);
+  }
+  
+  /* Стили для уведомления */
+  .notification {
+    position: fixed;
+    bottom: -100px; /* Начальное положение за пределами экрана */
+    right: 20px;
+    width: 300px;
+    background: #e58411;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+  }
+  
+  .notification.active {
+    bottom: 20px; /* Позиция на экране */
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .notification-content p {
+    font-family: "Gilroy", sans-serif;
+    font-size: 16px;
+    text-align: center;
+    margin: 0;
+  }
