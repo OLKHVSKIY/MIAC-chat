@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIAC chat</title>
-    <link rel="stylesheet" href="/CSS/avatar.css">
-    <link rel="stylesheet" href="/CSS/styles.css">
-    <link rel="stylesheet" href="/CSS/header.css">
-    <link rel="stylesheet" href="/CSS/sidebar.css">
-    <link rel="stylesheet" href="/CSS/chat.css">
-    <link rel="stylesheet" href="/CSS/input.css">
-    <link rel="stylesheet" href="/CSS/account.css">
-    <link rel="icon" href="/IMG/miac_short.png">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/avatar.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/styles.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/header.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/sidebar.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/chat.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/input.css">
+    <link rel="stylesheet" href="http://localhost:4000/CSS/account.css">
+    <link rel="icon" href="http://localhost:4000/IMG/miac_short.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -60,7 +60,7 @@
                     <div class="user-avatar">
                         <i class="fas fa-user"></i>
                     </div>
-                    <div class="user-name">Ольховский А.А.</div>
+                    <div class="user-name"></div>
                 </div>
             </div>
         </aside>
@@ -103,9 +103,11 @@
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div class="profile-info">
-                                    <h3>Ольховский Александр Александрович</h3>
-                                    <p>+7 (XXX) XXX-XX-XX</p>
-                                    <p>Разработчик</p>
+                                    <h3 id="profile-full-name">Имя не указано</h3>
+                                    <p id="profile-phone">Телефон не указан</p>
+                                    <p id="profile-role">Роль: Неизвестная роль</p>
+                                    <p id="profile-position">Должность: Не указана</p>
+                                    <p id="profile-telegram">Telegram: Не указан</p>
                                 </div>
                             </div>
                         </div>
@@ -115,16 +117,15 @@
         </div>
     </div>
 
-    <!-- Подключение скриптов -->
-    <script src="/JS/codeHighlight.js"></script>
-    <script src="/JS/modelSelector.js"></script>
-    <script src="/JS/utils.js"></script>
-    <script src="/JS/chat.js"></script>
-    <script src="/JS/input.js"></script>
-    <script src="/JS/message.js"></script>
-    <script src="/JS/sidebar.js"></script>
-    <script src="/JS/account.js"></script>
-    <script src="/JS/logout.js"></script>
-    <script type="module" src="/JS/main.js"></script>
+    <script src="http://localhost:4000/JS/utils.js"></script>
+    <script src="http://localhost:4000/JS/modelSelector.js"></script>
+    <script src="http://localhost:4000/JS/message.js"></script>
+    <script src="http://localhost:4000/JS/chat.js"></script>
+    <script src="http://localhost:4000/JS/input.js"></script>
+    <script src="http://localhost:4000/JS/sidebar.js"></script>
+    <script src="http://localhost:4000/JS/account.js"></script>
+    <script src="http://localhost:4000/JS/logout.js"></script>
+    <script src="http://localhost:4000/JS/codeHighlight.js"></script>
+    <script type="module" src="http://localhost:4000/JS/main.js"></script>
 </body>
 </html>

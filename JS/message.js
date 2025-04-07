@@ -1,8 +1,12 @@
-// Объявляем userInput здесь
+// Объявляем глобальные переменные для сообщений
+window.messageGlobals = window.messageGlobals || {
+    isWaitingForResponse: false,
+    stopGeneration: false
+};
+
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 window.chatWindow = document.getElementById('chat-window');
-
 
 // Обработчик для кнопки отправки
 sendBtn.addEventListener('click', sendMessage);
