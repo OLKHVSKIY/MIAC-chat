@@ -123,18 +123,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Функция для переключения форм
-function toggleForms(hideForm, showForm, hideDisplay, showDisplay, height) {
-    hideForm.classList.remove('active-form');
-    hideForm.classList.add('fade-out');
+        // Функция для переключения форм
+        function toggleForms(hideForm, showForm, hideDisplay, showDisplay, height) {
+            hideForm.classList.remove('active-form');
+            hideForm.classList.add('fade-out');
 
-    setTimeout(() => {
-        hideForm.style.display = hideDisplay;
-        showForm.style.display = showDisplay;
-        showForm.classList.add('active-form');
-        document.querySelector('.container').style.height = height;
-    }, 300);
-}
+            setTimeout(() => {
+                hideForm.style.display = hideDisplay;
+                showForm.style.display = showDisplay;
+                showForm.classList.add('active-form');
+                document.querySelector('.container').style.height = height;
+            }, 300);
+        }
 
 // Функция для форматирования номера телефона
 function formatPhoneNumber(e) {
