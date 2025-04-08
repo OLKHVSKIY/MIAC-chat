@@ -21,16 +21,21 @@ const pool = new Pool({
   port: 5432,
 });
 
+app.use(cors({
+    origin: ['http://localhost:4000', 'http://127.0.0.1:4000'],
+    credentials: true
+}));
+
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // Для корректного парсинга форм
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+    origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
 // Статические файлы
 app.use(express.static(path.join(__dirname, '../')));
@@ -209,6 +214,50 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
       details: err.message 
     });
   }
+});
+
+// API: Регистрация нового пользователя
+app.post('/api/register', async (req, res) => {
+    const { username, password, fullName, email, phone, telegram } = req.body;
+
+    try {
+        // Проверяем существование пользователя
+        const userExists = await pool.query(
+            'SELECT * FROM users WHERE username = $1 OR email = $2',
+            [username, email]
+        );
+
+        if (userExists.rows.length > 0) {
+            return res.status(400).json({ 
+                error: 'Пользователь с таким логином или email уже существует' 
+            });
+        }
+
+        // Хешируем пароль
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Очищаем телефон от форматирования
+        const cleanPhone = phone.replace(/[^\d+]/g, '');
+
+        // Создаем пользователя
+        const newUser = await pool.query(
+            `INSERT INTO users 
+             (username, password_hash, full_name, email, phone, telegram_id, role_id, is_active)
+             VALUES ($1, $2, $3, $4, $5, $6, 2, true)
+             RETURNING user_id, username, full_name, email`,
+            [username, hashedPassword, fullName, email, cleanPhone, telegram || null]
+        );
+
+        res.status(201).json({
+            success: true,
+            user: newUser.rows[0]
+        });
+
+    } catch (err) {
+        console.error('Ошибка регистрации:', err);
+        res.status(500).json({ error: 'Ошибка сервера при регистрации' });
+    }
 });
 
 // API: Выход из системы

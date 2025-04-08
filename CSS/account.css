@@ -91,6 +91,10 @@
     overflow-y: auto;
 }
 
+.my-profile{
+    background-color: #2A2A2A;
+}
+
 .profile-section {
     display: flex;
     align-items: center;
@@ -121,4 +125,66 @@
     color: #aaa;
     margin: 5px 0;
     font-size: 16px;
+}
+
+/* Стили для формы смены пароля */
+#change-password-modal .form-group {
+    margin-bottom: 20px;
+}
+
+#change-password-modal label {
+    display: block;
+    margin-bottom: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+
+#change-password-modal input {
+    width: 440px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background-color: #2d2d2d;
+    color: #fff;
+    font-size: 14px;
+}
+
+#change-password-modal input:focus {
+    outline: none;
+    border-color: #555;
+}
+
+#change-password-modal .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#change-password-modal .submit-btn {
+    padding: 10px 20px;
+    background-color: #e58411;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#change-password-modal .submit-btn:hover {
+    background-color: #c07110;
+}
+
+#change-password-modal .cancel-btn {
+    padding: 10px 20px;
+    background: #2d2f33;
+    color: #e58411;
+    border: 1px solid #e58411;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#change-password-modal .cancel-btn:hover {
+    background: rgba(229, 134, 17, 0.178);
 }

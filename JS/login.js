@@ -73,9 +73,8 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = 'http://localhost:4000/HTML/main.html';
 
         } catch (error) {
-            // Обрабатываем ошибки
-            console.error('Ошибка входа:', error);
-            alert(error.message || 'Не удалось войти. Проверьте логин и пароль.');
+            // Показываем уведомление об ошибке
+            showAlert(error.message || 'Не удалось войти. Проверьте логин и пароль.', 'error');
         } finally {
             // Включаем кнопку входа обратно
             if (loginBtn) loginBtn.disabled = false;
@@ -112,29 +111,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Успешная регистрация
-            alert('Регистрация прошла успешно!');
+            showAlert('Регистрация прошла успешно!', 'success');
             toggleForms(registerForm, loginForm, 'none', 'block', '60vh');
 
         } catch (error) {
-            // Обрабатываем ошибки
-            console.error('Ошибка регистрации:', error);
-            alert(error.message || 'Не удалось зарегистрироваться. Проверьте введенные данные.');
+            // Показываем уведомление об ошибке
+            showAlert(error.message || 'Не удалось зарегистрироваться. Проверьте введенные данные.', 'error');
         }
     });
 });
 
-        // Функция для переключения форм
-        function toggleForms(hideForm, showForm, hideDisplay, showDisplay, height) {
-            hideForm.classList.remove('active-form');
-            hideForm.classList.add('fade-out');
+// Функция для переключения форм
+function toggleForms(hideForm, showForm, hideDisplay, showDisplay, height) {
+    hideForm.classList.remove('active-form');
+    hideForm.classList.add('fade-out');
 
-            setTimeout(() => {
-                hideForm.style.display = hideDisplay;
-                showForm.style.display = showDisplay;
-                showForm.classList.add('active-form');
-                document.querySelector('.container').style.height = height;
-            }, 300);
-        }
+    setTimeout(() => {
+        hideForm.style.display = hideDisplay;
+        showForm.style.display = showDisplay;
+        showForm.classList.add('active-form');
+        document.querySelector('.container').style.height = height;
+    }, 300);
+}
 
 // Функция для форматирования номера телефона
 function formatPhoneNumber(e) {
@@ -208,6 +206,20 @@ function formatTelegramUsername(e) {
     }
 
     e.target.value = value;
+}
+
+// Функция показа уведомлений
+function showAlert(message, type = 'success') {
+    const alertBox = document.createElement('div');
+    alertBox.className = `alert ${type}`;
+    alertBox.textContent = message;
+
+    document.body.appendChild(alertBox);
+
+    setTimeout(() => {
+        alertBox.classList.add('fade-out');
+        setTimeout(() => alertBox.remove(), 300);
+    }, 3000);
 }
 
 // Функция для валидации ФИО
