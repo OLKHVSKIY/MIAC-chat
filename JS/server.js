@@ -7,12 +7,10 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cookieParser = require('cookie-parser');
 
-// Инициализация приложения
 const app = express();
 const PORT = 4000;
 const SECRET_KEY = 'your-secret-key-123'; // В продакшене используйте переменные окружения
 
-// Конфигурация базы данных
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -21,59 +19,74 @@ const pool = new Pool({
   port: 5432,
 });
 
-app.use(cors({
-    origin: ['http://localhost:4000', 'http://127.0.0.1:4000'],
-    credentials: true
-}));
+// Настройки CORS
+const allowedOrigins = [
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:4000',
+  'http://127.0.0.1:4000'
+];
 
-// Middleware
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true })); // Для корректного парсинга форм
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }));
-
-// Статические файлы
 app.use(express.static(path.join(__dirname, '../')));
 
-// Middleware аутентификации
+// Улучшенный middleware аутентификации
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+  let token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
   
   if (!token) {
     return res.status(401).json({ error: 'Требуется авторизация' });
   }
 
-  jwt.verify(token, SECRET_KEY, async (err, decoded) => {
-    if (err) {
-      console.error('Ошибка верификации токена:', err);
-      return res.status(403).json({ error: 'Недействительный токен' });
-    }
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    
+    pool.query(
+      'SELECT user_id, username, is_active FROM users WHERE user_id = $1',
+      [decoded.id],
+      (err, result) => {
+        if (err) {
+          console.error('Ошибка БД:', err);
+          return res.status(500).json({ error: 'Ошибка сервера' });
+        }
 
-    try {
-      const user = await pool.query(
-        'SELECT user_id, username, is_active FROM users WHERE user_id = $1',
-        [decoded.id]
-      );
+        if (result.rows.length === 0 || !result.rows[0].is_active) {
+          return res.status(403).json({ error: 'Пользователь не найден или неактивен' });
+        }
 
-      if (user.rows.length === 0 || !user.rows[0].is_active) {
-        return res.status(403).json({ error: 'Пользователь не найден или неактивен' });
+        req.user = result.rows[0];
+        next();
       }
-
-      req.user = user.rows[0];
-      next();
-    } catch (dbErr) {
-      console.error('Ошибка БД:', dbErr);
-      res.status(500).json({ error: 'Ошибка сервера' });
+    );
+  } catch (err) {
+    console.error('Ошибка верификации токена:', err);
+    
+    // Очищаем невалидный токен
+    res.clearCookie('token');
+    
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Срок действия токена истек' });
     }
-  });
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Неверный токен' });
+    }
+    
+    return res.status(401).json({ error: 'Не удалось аутентифицировать' });
+  }
 };
 
-// Маршруты HTML
+// Маршруты
 app.get(['/', '/login'], (req, res) => {
   res.sendFile(path.join(__dirname, '../HTML/login.html'));
 });
@@ -82,17 +95,16 @@ app.get('/main', authenticateToken, (req, res) => {
   res.sendFile(path.join(__dirname, '../HTML/main.html'));
 });
 
-// API: Вход в систему (улучшенная версия)
+// API: Вход в систему
 app.post('/api/user_login', async (req, res) => {
   const { username, password } = req.body;
 
-  // Валидация входных данных
   if (!username || !password) {
     return res.status(400).json({ error: 'Необходимо указать имя пользователя и пароль' });
   }
 
   try {
-    // 1. Находим пользователя с полной информацией
+    // Находим пользователя
     const result = await pool.query(
       `SELECT 
          u.user_id, u.username, u.password_hash, 
@@ -104,9 +116,7 @@ app.post('/api/user_login', async (req, res) => {
       [username]
     );
 
-    // 2. Если пользователь не найден
     if (result.rows.length === 0) {
-      console.log(`Попытка входа несуществующего пользователя: ${username}`);
       return res.status(401).json({ 
         error: 'Неверные учетные данные',
         details: 'Пользователь не найден'
@@ -115,64 +125,34 @@ app.post('/api/user_login', async (req, res) => {
 
     const user = result.rows[0];
     
-    // 3. Проверяем активность аккаунта
     if (!user.is_active) {
-      console.log(`Попытка входа в деактивированный аккаунт: ${username}`);
-      return res.status(403).json({ 
-        error: 'Доступ запрещен',
-        details: 'Аккаунт деактивирован'
-      });
+      return res.status(403).json({ error: 'Аккаунт деактивирован' });
     }
 
-    // 4. Проверяем пароль с подробным логированием
-    console.log(`Попытка входа пользователя: ${username}`);
     const validPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!validPassword) {
-      console.log(`Неверный пароль для пользователя: ${username}`);
-      return res.status(401).json({ 
-        error: 'Неверные учетные данные',
-        details: 'Неправильный пароль'
-      });
+      return res.status(401).json({ error: 'Неверные учетные данные' });
     }
 
-    // 5. Генерируем JWT токен
-    const tokenPayload = {
-      id: user.user_id,
-      username: user.username,
-      role: user.role_name
-    };
+    const token = jwt.sign(
+      { id: user.user_id, username: user.username },
+      SECRET_KEY,
+      { expiresIn: '2h' }
+    );
 
-    const token = jwt.sign(tokenPayload, SECRET_KEY, { expiresIn: '2h' });
-
-    // 6. Устанавливаем безопасные cookies
     res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 2 * 60 * 60 * 1000, // 2 часа
+      maxAge: 2 * 60 * 60 * 1000,
       sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production' // Включить в продакшене
+      secure: process.env.NODE_ENV === 'production'
     });
 
-    // 7. Отправляем успешный ответ с полными данными пользователя
-    res.json({
-      success: true,
-      user: {
-        id: user.user_id,
-        username: user.username,
-        full_name: user.full_name,
-        role: user.role_name,
-        role_id: user.role_id,
-        position_id: user.position_id,
-        telegram_id: user.telegram_id
-      }
-    });
+    res.json({ success: true, token });
 
   } catch (err) {
     console.error('Ошибка входа:', err);
-    res.status(500).json({ 
-      error: 'Ошибка сервера',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 

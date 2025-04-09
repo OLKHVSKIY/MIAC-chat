@@ -39,44 +39,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const password = document.getElementById('password').value;
         const loginBtn = document.getElementById('loginBtn');
 
-        // Отключаем кнопку входа, чтобы предотвратить повторные нажатия
         if (loginBtn) loginBtn.disabled = true;
 
         try {
-            // Отправляем запрос на сервер для авторизации
             const response = await fetch('http://localhost:4000/api/user_login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Включаем cookies
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
                 body: JSON.stringify({ username, password }),
             });
 
-            // Получаем данные ответа
-            const data = await response.json();
-
-            // Проверяем статус ответа
             if (!response.ok) {
-                throw new Error(data.error || 'Ошибка входа');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Ошибка входа');
             }
 
-            // Сохраняем токен в localStorage
+            const data = await response.json();
+
+            // Сохраняем данные
             if (data.token) {
                 localStorage.setItem('authToken', data.token);
             }
-
-            // Сохраняем данные пользователя
             if (data.user) {
                 localStorage.setItem('userData', JSON.stringify(data.user));
             }
 
-            // Перенаправляем пользователя на главную страницу
             window.location.href = 'http://localhost:4000/HTML/main.html';
 
         } catch (error) {
-            // Показываем уведомление об ошибке
+            console.error('Ошибка входа:', error);
             showAlert(error.message || 'Не удалось войти. Проверьте логин и пароль.', 'error');
         } finally {
-            // Включаем кнопку входа обратно
             if (loginBtn) loginBtn.disabled = false;
         }
     });
