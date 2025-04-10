@@ -1,224 +1,267 @@
-// Объявляем глобальные переменные для сообщений
-window.messageGlobals = window.messageGlobals || {
+// Глобальные переменные для управления состоянием чата
+window.chatState = {
     isWaitingForResponse: false,
-    stopGeneration: false
+    abortController: null,
+    currentStreamReader: null,
+    isTyping: false
 };
 
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
-window.chatWindow = document.getElementById('chat-window');
+const chatWindow = document.getElementById('chat-window');
 
-// Обработчик для кнопки отправки
-sendBtn.addEventListener('click', sendMessage);
-
-// Обработчик для клавиши Enter
-userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // Предотвращаем стандартное поведение Enter
-        sendMessage(); // Отправляем сообщение
-    }
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 });
 
 async function sendMessage() {
     const messageText = userInput.value.trim();
-    if (messageText === '' || isWaitingForResponse) return;
+    if (messageText === '' || chatState.isWaitingForResponse) return;
 
-    // Сброс флага остановки
-    stopGeneration = false;
+    // Сброс предыдущего состояния
+    if (chatState.abortController) {
+        chatState.abortController.abort();
+    }
+    chatState.abortController = new AbortController();
+    chatState.isWaitingForResponse = true;
     
-    // Сообщение пользователя
-    const userMessage = document.createElement('div');
-    userMessage.classList.add('message', 'user-message');
-    userMessage.innerHTML = `
-        ${messageText}
-        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-    `;
-    chatWindow.appendChild(userMessage);
-
+    // Создаем сообщение пользователя
+    createUserMessage(messageText);
     userInput.value = '';
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    hasSentMessage = true;
-    isWaitingForResponse = true;
     
     // Меняем кнопку на "Стоп"
-    document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
-
-    if (activeChat && activeChat.querySelector('span').textContent === 'Новый чат') {
-        updateChatName(activeChat, messageText);
-    }
+    sendBtn.innerHTML = '<i class="fas fa-stop"></i>';
+    sendBtn.onclick = stopGeneration;
 
     try {
-        // Индикатор набора с аватаркой
-        const typingContainer = document.createElement('div');
-        typingContainer.classList.add('message-container');
+        // Показываем индикатор набора
+        const typingIndicator = createTypingIndicator();
         
-        const typingAvatar = document.createElement('div');
-        typingAvatar.classList.add('avatar', 'bot-avatar');
-        
-        const typingContent = document.createElement('div');
-        typingContent.classList.add('message-content');
-        
-        const typingIndicator = document.createElement('div');
-        typingIndicator.classList.add('message', 'bot-message', 'typing');
-        typingIndicator.innerHTML = `<div class="typing-dots"><div></div><div></div><div></div></div>`;
-        
-        typingContent.appendChild(typingIndicator);
-        typingContainer.appendChild(typingAvatar);
-        typingContainer.appendChild(typingContent);
-        chatWindow.appendChild(typingContainer);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-
+        // Отправляем запрос
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "qwen2.5:1.5b",
-                prompt: `You are an AI assistant. Answer in Russian, except for the code. Strictly follow the rules:
-                        1. Answer general questions (planets, weather, facts) with text WITHOUT code
-                        2. Show the code (SQL/Python/HTML/CSS/Rust/JS/PHP) only when explicitly asked about code.
-                        3. Format your answers using Markdown (**bold**, *cursive*).
-                        4. Use numbering or markdowns for lists
-                        Current question: ${messageText}`,
-                stream: false
-            })
+                prompt: messageText,
+                stream: true
+            }),
+            signal: chatState.abortController.signal
         });
 
-        const data = await response.json();
-        if (!response.ok || data.error) throw new Error(data.error || 'Unknown error');
-
-        chatWindow.removeChild(typingContainer);
-
-        // Сообщение бота с аватаркой
-        const botContainer = document.createElement('div');
-        botContainer.classList.add('message-container');
-        
-        const botAvatar = document.createElement('div');
-        botAvatar.classList.add('avatar', 'bot-avatar');
-        
-        const botContent = document.createElement('div');
-        botContent.classList.add('message-content');
-        
-        const botMessage = document.createElement('div');
-        botMessage.classList.add('message', 'bot-message');
-        
-        // Обрабатываем текст с выделением кода
-        const rawText = data.response || '';
-        const { text: processedText, hasCode } = window.codeHighlight.highlightCode(rawText);
-        
-        // Добавляем кнопку копирования
-        const copyButton = document.createElement('button');
-        copyButton.classList.add('copy-icon');
-        copyButton.title = 'Копировать';
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        botMessage.appendChild(copyButton);
-        
-        // Эффект печатающегося сообщения
-        let i = 0;
-        const typingSpeed = 20; // Скорость печати (меньше = быстрее)
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = processedText;
-        
-        // Создаем плоский список всех текстовых узлов и элементов
-        const allNodes = this.flattenNodes(tempDiv.childNodes);
-        
-        async function typeWriter() {
-    let isScrolling = false;
-    
-    // Обработчик ручного скролла пользователем
-    chatWindow.addEventListener('scroll', () => {
-        isScrolling = true;
-    });
-
-    if (i < allNodes.length && !stopGeneration) {
-        const node = allNodes[i];
-        
-        if (node.nodeType === Node.TEXT_NODE) {
-            let text = node.textContent;
-            for (let j = 0; j < text.length; j++) {
-                if (stopGeneration) break;
-                
-                const char = text[j];
-                const textNode = document.createTextNode(char);
-                botMessage.insertBefore(textNode, copyButton);
-                
-                // Прокручиваем только если пользователь не скроллит вручную
-                if (!isScrolling) {
-                    chatWindow.scrollTop = chatWindow.scrollHeight;
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, typingSpeed));
-            }
-        } else {
-            const clone = node.cloneNode(true);
-            botMessage.insertBefore(clone, copyButton);
-            
-            if (!isScrolling) {
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, typingSpeed * 10));
+        if (!response.ok) {
+            throw new Error(await response.text());
         }
+
+        // Убираем индикатор набора
+        chatWindow.removeChild(typingIndicator);
         
-        i++;
-        isScrolling = false; // Сбрасываем флаг после обработки узла
-        return typeWriter();
-    } else if (i >= allNodes.length) {
-        // После завершения всегда прокручиваем вниз
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        if (hasCode) {
-            window.codeHighlight.addCopyButtons();
-        }
-    }
-}
+        // Создаем контейнер для сообщения бота
+        const botMessage = createBotMessageContainer();
         
-        botContent.appendChild(botMessage);
-        botContainer.appendChild(botAvatar);
-        botContainer.appendChild(botContent);
-        chatWindow.appendChild(botContainer);
-        
-        await typeWriter();
+        // Обрабатываем потоковые данные
+        chatState.currentStreamReader = response.body.getReader();
+        await streamResponse(botMessage);
 
     } catch (error) {
-        const errorContainer = document.createElement('div');
-        errorContainer.classList.add('message-container');
-        
-        const errorAvatar = document.createElement('div');
-        errorAvatar.classList.add('avatar', 'bot-avatar');
-        
-        const errorContent = document.createElement('div');
-        errorContent.classList.add('message-content');
-        
-        const errorMessage = document.createElement('div');
-        errorMessage.classList.add('message', 'bot-message', 'error');
-        errorMessage.textContent = `Ошибка: ${error.message}`;
-        
-        errorContent.appendChild(errorMessage);
-        errorContainer.appendChild(errorAvatar);
-        errorContainer.appendChild(errorContent);
-        chatWindow.appendChild(errorContainer);
+        if (error.name !== 'AbortError') {
+            console.error('Error:', error);
+            showErrorMessage(error.message);
+        }
     } finally {
-        isWaitingForResponse = false;
-        // Возвращаем обычную кнопку
-        document.getElementById('send-btn').innerHTML = '<i class="fas fa-arrow-up"></i>';
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        resetChatState();
+    }
+}
+
+function stopGeneration() {
+    if (chatState.abortController) {
+        chatState.abortController.abort();
+    }
+    resetChatState();
+}
+
+function resetChatState() {
+    chatState.isWaitingForResponse = false;
+    chatState.isTyping = false;
+    chatState.abortController = null;
+    chatState.currentStreamReader = null;
+    
+    // Возвращаем обычную кнопку
+    sendBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    sendBtn.onclick = sendMessage;
+}
+
+function createUserMessage(text) {
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container user-message-container';
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message user-message';
+    messageElement.innerHTML = `
+        ${escapeHtml(text)}
+        <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+    `;
+    
+    messageContent.appendChild(messageElement);
+    messageContainer.appendChild(messageContent);
+    chatWindow.appendChild(messageContainer);
+    
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    return messageContainer;
+}
+
+function createTypingIndicator() {
+    const typingContainer = document.createElement('div');
+    typingContainer.className = 'message-container bot-message-container';
+    
+    const typingContent = document.createElement('div');
+    typingContent.className = 'message-content';
+    
+    const typingElement = document.createElement('div');
+    typingElement.className = 'message bot-message typing';
+    typingElement.innerHTML = '<div class="typing-dots"><div></div><div></div><div></div></div>';
+    
+    typingContent.appendChild(typingElement);
+    typingContainer.appendChild(typingContent);
+    chatWindow.appendChild(typingContainer);
+    
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    return typingContainer;
+}
+
+function createBotMessageContainer() {
+    const container = document.createElement('div');
+    container.className = 'message-container bot-message-container';
+    
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    
+    const message = document.createElement('div');
+    message.className = 'message bot-message';
+    
+    // Добавляем кнопку копирования
+    const copyButton = document.createElement('button');
+    copyButton.className = 'copy-icon';
+    copyButton.title = 'Копировать';
+    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+    message.appendChild(copyButton);
+    
+    content.appendChild(message);
+    container.appendChild(content);
+    chatWindow.appendChild(container);
+    
+    return { container, message, copyButton };
+}
+
+async function streamResponse({ container, message, copyButton }) {
+    const decoder = new TextDecoder();
+    let accumulatedText = '';
+    chatState.isTyping = true;
+    
+    try {
+        while (true) {
+            const { done, value } = await chatState.currentStreamReader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            accumulatedText += chunk;
+            
+            // Обрабатываем новые данные
+            const { text: processedText } = window.codeHighlight.highlightCode(accumulatedText);
+            
+            // Создаем временный элемент для разбора HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = processedText;
+            
+            // Полностью заменяем содержимое сообщения
+            const newContent = extractContent(tempDiv);
+            message.innerHTML = '';
+            message.appendChild(newContent);
+            message.appendChild(copyButton);
+            
+            // Прокручиваем чат
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    } finally {
+        chatState.isTyping = false;
+        // Добавляем обработчики копирования
         addCopyHandlers();
     }
 }
 
-// Вспомогательная функция для "выравнивания" DOM-узлов
-function flattenNodes(nodes) {
-    const result = [];
-    nodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('code-block-wrapper')) {
-            // Блоки кода добавляем как есть
-            result.push(node);
+function extractContent(element) {
+    const fragment = document.createDocumentFragment();
+    const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+    
+    let node;
+    while (node = walker.nextNode()) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            fragment.appendChild(document.createTextNode(node.textContent));
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-            // Для других элементов рекурсивно обрабатываем их содержимое
-            result.push(...this.flattenNodes(node.childNodes));
-        } else if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-            // Текстовые узлы добавляем как есть
-            result.push(node);
+            const clone = node.cloneNode(true);
+            fragment.appendChild(clone);
         }
+    }
+    
+    return fragment;
+}
+
+function showErrorMessage(message) {
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'message-container bot-message-container';
+    
+    const errorContent = document.createElement('div');
+    errorContent.className = 'message-content';
+    
+    const errorElement = document.createElement('div');
+    errorElement.className = 'message bot-message error';
+    errorElement.textContent = `Ошибка: ${message}`;
+    
+    errorContent.appendChild(errorElement);
+    errorContainer.appendChild(errorContent);
+    chatWindow.appendChild(errorContainer);
+    
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function addCopyHandlers() {
+    document.querySelectorAll('.copy-icon').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const message = e.target.closest('.message');
+            const textToCopy = message.textContent.replace('Копировать', '').trim();
+            
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                const icon = button.querySelector('i');
+                icon.classList.replace('fa-copy', 'fa-check');
+                
+                setTimeout(() => {
+                    icon.classList.replace('fa-check', 'fa-copy');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
     });
-    return result;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

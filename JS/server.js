@@ -11,6 +11,7 @@ const app = express();
 const PORT = 4000;
 const SECRET_KEY = 'your-secret-key-123'; // В продакшене используйте переменные окружения
 
+
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -193,6 +194,101 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
       error: 'Ошибка сервера',
       details: err.message 
     });
+  }
+});
+
+// API для работы с чатами
+app.post('/api/chats', authenticateToken, async (req, res) => {
+  try {
+      const { title } = req.body;
+      const result = await pool.query(
+          'INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING *',
+          [req.user.user_id, title || 'Новый чат']
+      );
+      res.status(201).json(result.rows[0]);
+  } catch (err) {
+      console.error('Ошибка создания чата:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/chats', authenticateToken, async (req, res) => {
+  try {
+      const result = await pool.query(
+          'SELECT * FROM chats WHERE user_id = $1 ORDER BY created_at DESC',
+          [req.user.user_id]
+      );
+      res.json(result.rows);
+  } catch (err) {
+      console.error('Ошибка получения чатов:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/chats/:chatId/messages', authenticateToken, async (req, res) => {
+  try {
+      const result = await pool.query(
+          `SELECT * FROM messages 
+           WHERE chat_id = $1 
+           ORDER BY timestamp ASC`,
+          [req.params.chatId]
+      );
+      res.json(result.rows);
+  } catch (err) {
+      console.error('Ошибка получения сообщений:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/messages', authenticateToken, async (req, res) => {
+  try {
+      const { chat_id, sender, content } = req.body;
+      const result = await pool.query(
+          `INSERT INTO messages (chat_id, sender, content)
+           VALUES ($1, $2, $3) RETURNING *`,
+          [chat_id, sender, content]
+      );
+      res.status(201).json(result.rows[0]);
+  } catch (err) {
+      console.error('Ошибка сохранения сообщения:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.patch('/api/chats/:chatId', authenticateToken, async (req, res) => {
+  try {
+      const { title } = req.body;
+      const result = await pool.query(
+          `UPDATE chats SET title = $1 
+           WHERE chat_id = $2 AND user_id = $3
+           RETURNING *`,
+          [title, req.params.chatId, req.user.user_id]
+      );
+      if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Чат не найден' });
+      }
+      res.json(result.rows[0]);
+  } catch (err) {
+      console.error('Ошибка обновления чата:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
+  try {
+      // Удаляем сначала сообщения, потом чат
+      await pool.query('DELETE FROM messages WHERE chat_id = $1', [req.params.chatId]);
+      const result = await pool.query(
+          'DELETE FROM chats WHERE chat_id = $1 AND user_id = $2 RETURNING *',
+          [req.params.chatId, req.user.user_id]
+      );
+      if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Чат не найден' });
+      }
+      res.json({ success: true });
+  } catch (err) {
+      console.error('Ошибка удаления чата:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 

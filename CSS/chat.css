@@ -1,9 +1,8 @@
 main {
     flex: 1;
-    padding: 80px 20px 150px; /* Увеличьте отступ снизу */
+    padding: 80px 20px 150px 100px;
     display: flex;
     flex-direction: column;
-    margin-left: 250px;
     transition: margin-left 0.3s ease;
 }
 
@@ -11,11 +10,10 @@ main.full-width {
     margin-left: 0;
 }
 
-/* Контейнер для ограничения ширины чата и выравнивания по центру */
 .chat-container {
     max-width: 1200px;
     width: 100%;
-    margin: 0 auto; /* Выравнивание по центру */
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -32,8 +30,6 @@ main.full-width {
     padding-bottom: 20px;
 }
 
-
-/* Стилизация скроллбара для WebKit-браузеров */
 #chat-window::-webkit-scrollbar {
     width: 8px;
 }
@@ -51,30 +47,46 @@ main.full-width {
     background: #777;
 }
 
-/* Стилизация скроллбара для Firefox */
 #chat-window {
     scrollbar-width: thin;
     scrollbar-color: #555 transparent;
 }
 
+.message-container {
+    display: flex;
+    margin: 12px 0;
+    width: 95%;
+}
+
+.message-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 95%;
+}
+
 .user-message {
     background-color: #FF6B35;
     margin-left: auto;
+    margin-right: 20px;
+    max-width: 500px;
 }
 
 .bot-message {
     background-color: #444;
     margin-right: auto;
+    margin-left: 20px;
+    max-width: 600px;
 }
 
 .message {
-    padding: 10px;
+    padding: 12px 16px;
     border-radius: 12px;
-    margin-bottom: 10px;
-    max-width: 60vh;
+    margin-bottom: 8px;
     position: relative;
     animation: fadeIn 0.3s ease;
     line-height: 1.4;
+    word-wrap: break-word;
+    width: fit-content;
 }
 
 .message .copy-icon {
@@ -88,14 +100,12 @@ main.full-width {
     font-size: 14px;
     opacity: 0;
     transition: opacity 0.3s ease;
-    
 }
 
 .message:hover .copy-icon {
     opacity: 1;
 }
 
-/* Стили для изображений в чате */
 .chat-image {
     max-width: 100%;
     max-height: 300px;
@@ -103,12 +113,12 @@ main.full-width {
     margin-top: 10px;
 }
 
-/* Индикатор набора сообщения */
 .typing-dots {
     display: inline-flex;
     align-items: center;
     height: 17px;
 }
+
 .typing-dots div {
     width: 8px;
     height: 8px;
@@ -118,12 +128,15 @@ main.full-width {
     margin: 0 2px;
     animation: typingAnimation 1.4s infinite ease-in-out both;
 }
+
 .typing-dots div:nth-child(1) {
     animation-delay: -0.32s;
 }
+
 .typing-dots div:nth-child(2) {
     animation-delay: -0.16s;
 }
+
 @keyframes typingAnimation {
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
@@ -134,86 +147,6 @@ main.full-width {
     color: #d32f2f;
 }
 
-/* Стили для контейнера сообщений */
-.message-container {
-    display: flex;
-    margin: 12px 0;
-    max-width: 100%;
-}
-
-.message-content {
-    flex: 1;
-    min-width: 0;
-}
-
-/* Markdown стили */
-#chat-window h1 {
-    font-size: 1.8em;
-    font-weight: bold;
-    margin: 0.5em 0;
-    color: #fff;
-}
-
-#chat-window h2 {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin: 0.4em 0;
-    color: #fff;
-}
-
-#chat-window h3 {
-    font-size: 1.3em;
-    font-weight: bold;
-    margin: 0.3em 0;
-    color: #fff;
-}
-
-#chat-window strong {
-    font-weight: bold;
-}
-
-#chat-window em {
-    font-style: italic;
-}
-
-#chat-window li {
-    list-style-type: disc;
-    margin-left: 1.5em;
-}
-
-#chat-window blockquote {
-    border-left: 3px solid #555;
-    padding-left: 1em;
-    margin: 0.5em 0;
-    color: #aaa;
-}
-
-/* Стили для блоков кода */
-.code-block-wrapper {
-    background: #1e1e1e;
-    border-radius: 8px;
-    margin: 12px 0;
-    overflow: hidden;
-    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 0.9em;
-}
-
-.code-header {
-    background: #252526;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.language-label {
-    color: #9cdcfe;
-    text-transform: uppercase;
-    font-size: 0.8em;
-    font-weight: bold;
-}
-
-/* Стили для кнопки копирования */
 .copy-code-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -245,83 +178,4 @@ main.full-width {
 .check-icon svg {
     width: 14px;
     height: 14px;
-}
-
-.code-block {
-    color: #d4d4d4;
-    padding: 12px;
-    margin: 0;
-    overflow-x: auto;
-    white-space: pre;
-    tab-size: 4;
-    line-height: 1.5;
-}
-
-/* Подсветка синтаксиса */
-.keyword { color: #569cd6; }
-.tag { color: #569cd6; }
-.attribute { color: #9cdcfe; }
-.value { color: #ce9178; }
-.string { color: #ce9178; }
-.comment { color: #6a9955; font-style: italic; }
-.number { color: #b5cea8; }
-.function { color: #dcdcaa; }
-.constant { color: #4fc1ff; }
-.variable { color: #9cdcfe; }
-.property { color: #9cdcfe; }
-.selector { color: #d7ba7d; }
-.type { color: #4ec9b0; }
-.macro { color: #c586c0; }
-.important { color: #c586c0; }
-.decorator { color: #c586c0; }
-
-.inline-code {
-    background: rgba(110, 118, 129, 0.4);
-    border-radius: 3px;
-    padding: 0.2em 0.4em;
-    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 0.9em;
-    color: #d4d4d4;
-}
-
-/* Markdown стили */
-#chat-window h1 {
-    font-size: 1.8em;
-    font-weight: bold;
-    margin: 0.5em 0;
-    color: #fff;
-}
-
-#chat-window h2 {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin: 0.4em 0;
-    color: #fff;
-}
-
-#chat-window h3 {
-    font-size: 1.3em;
-    font-weight: bold;
-    margin: 0.3em 0;
-    color: #fff;
-}
-
-#chat-window strong {
-    font-weight: bold;
-}
-
-#chat-window em {
-    font-style: italic;
-}
-
-#chat-window li {
-    list-style-type: disc;
-    margin-left: 1.5em;
-}
-
-#chat-window blockquote {
-    border-left: 3px solid #555;
-    padding-left: 1em;
-    margin: 0.5em 0;
-    color: #aaa;
 }

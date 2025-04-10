@@ -1,12 +1,22 @@
+import { chatStorage } from './chatStorage.js';
+
 const API_URL = 'http://192.168.80.210:11434';
 let isWaitingForResponse = false;
 let currentModel = localStorage.getItem('selectedModel') || 'llama2';
 let stopGeneration = false;
-let hasSentMessage = false; // Tracks if a message has been sent in the current chat
+let hasSentMessage = false;
 const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat');
 window.chatWindow = document.getElementById('chat-window');
 let activeChat = null;
+
+// Обработчик Enter для отправки сообщений
+userInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey && !isWaitingForResponse) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
 
 // Event listener for model change
 document.addEventListener('modelChanged', (e) => {
@@ -15,50 +25,65 @@ document.addEventListener('modelChanged', (e) => {
 });
 
 // Initialize chat
-document.addEventListener('DOMContentLoaded', () => {
-    const hasChats = chatList.children.length > 0;
-    if (!hasChats) {
-        createNewChat();
-        localStorage.setItem('firstChatCreated', 'true');
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const chats = await chatStorage.getUserChats();
+        
+        if (chats.length === 0) {
+            await createNewChat();
+        } else {
+            renderChatList(chats);
+            setActiveChatById(chats[0].chat_id);
+            await loadChat(chats[0].chat_id);
+        }
+    } catch (error) {
+        console.error('Ошибка инициализации чатов:', error);
+        await createNewChat();
     }
 });
 
 // Create a new chat
-function createNewChat() {
-    const chatId = 'chat_' + Date.now();
-    const chatItem = document.createElement('div');
-    chatItem.classList.add('chat-item');
-    chatItem.dataset.id = chatId;
-    chatItem.innerHTML = `
-        <span>Новый чат</span>
-        <div class="chat-actions">
-            <button class="rename-chat" title="Переименовать"><i class="fas fa-edit"></i></button>
-            <button class="delete-chat" title="Удалить"><i class="fas fa-trash"></i></button>
-        </div>
-    `;
-    chatList.appendChild(chatItem);
+async function createNewChat() {
+    try {
+        const chatData = await chatStorage.createNewChat();
+        const chatId = chatData.chat_id;
+        
+        const chatItem = document.createElement('div');
+        chatItem.classList.add('chat-item');
+        chatItem.dataset.id = chatId;
+        chatItem.innerHTML = `
+            <span>Новый чат</span>
+            <div class="chat-actions">
+                <button class="rename-chat" title="Переименовать"><i class="fas fa-edit"></i></button>
+                <button class="delete-chat" title="Удалить"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        chatList.appendChild(chatItem);
 
-    setActiveChat(chatItem);
-    loadChat(chatId);
-
-    // Reset the flag for the new chat
-    hasSentMessage = false;
-
-    // Event listeners for rename and delete
-    chatItem.querySelector('.rename-chat').addEventListener('click', (e) => {
-        e.stopPropagation();
-        renameChat(chatItem);
-    });
-
-    chatItem.querySelector('.delete-chat').addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteChat(chatItem);
-    });
-
-    chatItem.addEventListener('click', () => {
         setActiveChat(chatItem);
-        loadChat(chatId);
-    });
+        await loadChat(chatId);
+        hasSentMessage = false;
+
+        // Event listeners
+        chatItem.querySelector('.rename-chat').addEventListener('click', (e) => {
+            e.stopPropagation();
+            renameChat(chatItem);
+        });
+
+        chatItem.querySelector('.delete-chat').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chatItem);
+        });
+
+        chatItem.addEventListener('click', () => {
+            setActiveChat(chatItem);
+            loadChat(chatId);
+        });
+
+    } catch (error) {
+        console.error('Ошибка при создании чата:', error);
+        showAlert('Не удалось создать новый чат', 'error');
+    }
 }
 
 // Set the active chat
@@ -72,64 +97,83 @@ function setActiveChat(chatItem) {
 }
 
 // Load chat content
-function loadChat(chatId) {
-    chatWindow.innerHTML = '';
-    const messageContainer = document.createElement('div');
-    messageContainer.classList.add('message-container');
-    const avatar = document.createElement('div');
-    avatar.classList.add('avatar', 'bot-avatar');
-    const content = document.createElement('div');
-    content.classList.add('message-content');
-    const message = document.createElement('div');
-    message.classList.add('message', 'bot-message');
-
-    // Format date and time
-    const now = new Date();
-    const formattedDate = [
-        String(now.getDate()).padStart(2, '0'),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        now.getFullYear()
-    ].join('.');
-    const formattedTime = [
-        String(now.getHours()).padStart(2, '0'),
-        String(now.getMinutes()).padStart(2, '0')
-    ].join(':');
-
-    message.innerHTML = `Чат создан: ${formattedDate} в ${formattedTime}`;
-    content.appendChild(message);
-    messageContainer.appendChild(avatar);
-    messageContainer.appendChild(content);
-    chatWindow.appendChild(messageContainer);
-
-    addCopyHandlers();
+async function loadChat(chatId) {
+    try {
+        const messages = await chatStorage.getChatMessages(chatId);
+        chatWindow.innerHTML = '';
+        
+        if (messages.length === 0) {
+            const welcomeMsg = createMessageElement(
+                'bot', 
+                'Чат создан. Задайте ваш вопрос...',
+                new Date().toISOString()
+            );
+            chatWindow.appendChild(welcomeMsg);
+        } else {
+            messages.forEach(msg => {
+                const messageElement = createMessageElement(
+                    msg.sender,
+                    msg.content,
+                    msg.timestamp
+                );
+                chatWindow.appendChild(messageElement);
+            });
+        }
+        
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        addCopyHandlers();
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке чата:', error);
+        showAlert('Не удалось загрузить историю чата', 'error');
+    }
 }
 
 // New chat button handler
-newChatBtn.addEventListener('click', () => {
+newChatBtn.addEventListener('click', async () => {
     if (!hasSentMessage) {
         alert('Пожалуйста, отправьте хотя бы одно сообщение в текущем чате, прежде чем создавать новый.');
         return;
     }
-    createNewChat();
+    await createNewChat();
 });
 
 // Rename chat
-function renameChat(chatItem) {
+async function renameChat(chatItem) {
+    const chatId = chatItem.dataset.id;
     const chatName = chatItem.querySelector('span');
     const newName = prompt('Введите новое название чата:', chatName.textContent);
+    
     if (newName) {
-        chatName.textContent = newName;
+        try {
+            await chatStorage.updateChatTitle(chatId, newName);
+            chatName.textContent = newName;
+        } catch (error) {
+            console.error('Ошибка при переименовании чата:', error);
+            showAlert('Не удалось переименовать чат', 'error');
+        }
     }
 }
 
 // Delete chat
-function deleteChat(chatItem) {
-    if (confirm('Вы уверены, что хотите удалить этот чат?')) {
+async function deleteChat(chatItem) {
+    if (!confirm('Вы уверены, что хотите удалить этот чат?')) return;
+    
+    const chatId = chatItem.dataset.id;
+    try {
+        await chatStorage.deleteChat(chatId);
         chatItem.remove();
+        
         if (activeChat === chatItem) {
             activeChat = null;
             chatWindow.innerHTML = '';
+            if (chatList.children.length === 0) {
+                await createNewChat();
+            }
         }
+    } catch (error) {
+        console.error('Ошибка при удалении чата:', error);
+        showAlert('Не удалось удалить чат', 'error');
     }
 }
 
@@ -164,7 +208,7 @@ function updateChatName(chatItem, messageText) {
 }
 
 // Send message
-document.getElementById('send-btn').addEventListener('click', function () {
+document.getElementById('send-btn').addEventListener('click', function() {
     if (isWaitingForResponse) {
         stopGeneration = true;
         this.innerHTML = '<i class="fas fa-arrow-up"></i>';
@@ -180,22 +224,23 @@ async function sendMessage() {
     if (!message) return;
 
     if (!activeChat) {
-        createNewChat();
+        await createNewChat();
+        return;
     }
 
-    // Add user's message without avatar
-    const userMessageContainer = document.createElement('div');
-    userMessageContainer.classList.add('message-container');
-    userMessageContainer.innerHTML = `
-        <div class="message-content">
-            <div class="message user-message">
-                ${message.replace(/\n/g, '<br>')}
-                <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-            </div>
-        </div>
-    `;
-    chatWindow.appendChild(userMessageContainer);
+    const chatId = activeChat.dataset.id;
+    
+    // Add user message to UI
+    const userMessageElement = createMessageElement('user', message);
+    chatWindow.appendChild(userMessageElement);
     userInput.value = '';
+
+    // Save user message
+    try {
+        await chatStorage.saveMessage(chatId, 'user', message);
+    } catch (error) {
+        console.error('Ошибка при сохранении сообщения:', error);
+    }
 
     // Show typing indicator
     const typingIndicator = addTypingIndicator();
@@ -203,6 +248,7 @@ async function sendMessage() {
     document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
 
     try {
+        // Get AI response
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -218,13 +264,27 @@ async function sendMessage() {
 
         chatWindow.removeChild(typingIndicator);
 
-        // Add bot message with typing effect
-        addBotMessageWithTypingEffect(data.response);
+        // Add AI response to UI
+        const botMessageElement = createMessageElement('bot', data.response);
+        chatWindow.appendChild(botMessageElement);
 
-        // Update chat name if it's the first message
+        // Save AI response
+        try {
+            await chatStorage.saveMessage(chatId, 'bot', data.response);
+        } catch (error) {
+            console.error('Ошибка при сохранении ответа:', error);
+        }
+
+        // Update chat title if first message
         if (!hasSentMessage) {
-            updateChatName(activeChat, message.substring(0, 30));
-            hasSentMessage = true; // Mark that a message has been sent in this chat
+            try {
+                const shortTitle = message.substring(0, 30);
+                await chatStorage.updateChatTitle(chatId, shortTitle);
+                updateChatName(activeChat, shortTitle);
+            } catch (error) {
+                console.error('Ошибка при обновлении названия чата:', error);
+            }
+            hasSentMessage = true;
         }
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
@@ -238,50 +298,77 @@ async function sendMessage() {
     }
 }
 
-// Add bot message with typing effect
-function addBotMessageWithTypingEffect(text) {
-    const botContainer = document.createElement('div');
-    botContainer.classList.add('message-container');
-    const avatar = document.createElement('div');
-    avatar.classList.add('avatar', 'bot-avatar');
-    const content = document.createElement('div');
-    content.classList.add('message-content');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', 'bot-message');
-
-    // Copy button
-    const copyButton = document.createElement('button');
-    copyButton.classList.add('copy-icon');
-    copyButton.title = 'Копировать';
-    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-    messageElement.appendChild(copyButton);
-
-    content.appendChild(messageElement);
-    botContainer.appendChild(avatar);
-    botContainer.appendChild(content);
-    chatWindow.appendChild(botContainer);
-
-    // Typing effect
-    let i = 0;
-    const typingSpeed = 20;
-    const fullText = text.replace(/\n/g, '<br>');
-    function typeWriter() {
-        if (i < fullText.length && !stopGeneration) {
-            messageElement.insertBefore(
-                document.createTextNode(fullText[i]),
-                copyButton
-            );
-            i++;
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            setTimeout(typeWriter, typingSpeed);
-        } else {
-            addCopyHandlers();
-        }
+// Helper functions
+function createMessageElement(sender, content, timestamp = null) {
+    const container = document.createElement('div');
+    container.classList.add('message-container');
+    
+    if (sender === 'bot') {
+        container.innerHTML = `
+            <div class="avatar bot-avatar"></div>
+            <div class="message-content">
+                <div class="message bot-message">
+                    ${content.replace(/\n/g, '<br>')}
+                    <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div class="message-content">
+                <div class="message user-message">
+                    ${content.replace(/\n/g, '<br>')}
+                    <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        `;
     }
-    typeWriter();
+    
+    return container;
 }
 
-// Add typing indicator
+function renderChatList(chats) {
+    chatList.innerHTML = '';
+    
+    chats.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.classList.add('chat-item');
+        chatItem.dataset.id = chat.chat_id;
+        chatItem.innerHTML = `
+            <span>${chat.title}</span>
+            <div class="chat-actions">
+                <button class="rename-chat" title="Переименовать"><i class="fas fa-edit"></i></button>
+                <button class="delete-chat" title="Удалить"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        
+        // Event handlers
+        chatItem.querySelector('.rename-chat').addEventListener('click', (e) => {
+            e.stopPropagation();
+            renameChat(chatItem);
+        });
+
+        chatItem.querySelector('.delete-chat').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chatItem);
+        });
+
+        chatItem.addEventListener('click', () => {
+            setActiveChat(chatItem);
+            loadChat(chat.chat_id);
+        });
+        
+        chatList.appendChild(chatItem);
+    });
+}
+
+function setActiveChatById(chatId) {
+    const chatItem = document.querySelector(`.chat-item[data-id="${chatId}"]`);
+    if (chatItem) {
+        setActiveChat(chatItem);
+    }
+}
+
 function addTypingIndicator() {
     const typingContainer = document.createElement('div');
     typingContainer.classList.add('message-container');
@@ -304,7 +391,6 @@ function addTypingIndicator() {
     return typingContainer;
 }
 
-// Add error message
 function addErrorMessage(message) {
     const errorContainer = document.createElement('div');
     errorContainer.classList.add('message-container');
@@ -318,7 +404,6 @@ function addErrorMessage(message) {
     chatWindow.appendChild(errorContainer);
 }
 
-// Add copy handlers
 function addCopyHandlers() {
     document.querySelectorAll('.copy-icon').forEach(icon => {
         icon.addEventListener('click', (e) => {
@@ -328,34 +413,15 @@ function addCopyHandlers() {
     });
 }
 
-// Additional functions
-async function loadUserChats() {
-    try {
-        const response = await fetch('http://localhost:3000/api/chats', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            }
-        });
-        if (!response.ok) throw new Error('Ошибка загрузки чатов');
-        const chats = await response.json();
-        renderChatList(chats);
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
+function showAlert(message, type = 'error') {
+    const alertBox = document.createElement('div');
+    alertBox.className = `alert ${type}`;
+    alertBox.textContent = message;
+    document.body.appendChild(alertBox);
+    setTimeout(() => {
+        alertBox.classList.add('fade-out');
+        setTimeout(() => alertBox.remove(), 300);
+    }, 3000);
 }
 
-async function saveMessage(chatId, userMessage, aiMessage) {
-    try {
-        const response = await fetch('http://localhost:3000/api/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            },
-            body: JSON.stringify({ chat_id: chatId, user_message: userMessage, ai_message: aiMessage })
-        });
-        if (!response.ok) throw new Error('Ошибка сохранения сообщения');
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
-}
+
