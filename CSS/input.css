@@ -29,22 +29,28 @@
     z-index: 10; /* Убедитесь, что поле ввода поверх других элементов */
 }
 
+main.full-width .input-container {
+    transform: translateX(-50%); /* Центрирование без сайдбара */
+    width: calc(100% - 40px); /* Ширина минус небольшие отступы */
+}
+
 #user-input {
-    font-family: 'Roboto', sans-serif; 
+    font-family: 'Roboto', sans-serif;
     flex: 1;
-    padding: 10px 58px 10px 10px; /* Добавляем отступ справа 50px */
+    padding: 10px 58px 10px 10px;
     background-color: #444;
     border: none;
     border-radius: 20px;
     color: #FFFFFF;
     font-size: 16px;
-    resize: none; /* Отключаем изменение размера вручную */
-    overflow-y: auto; /* Добавляем прокрутку, если текст превышает высоту */
-    white-space: pre-wrap; /* Перенос текста на новую строку */
-    word-wrap: break-word; /* Перенос длинных слов */
-    height: auto; /* Автоматическая высота */
-    min-height: 90px; /* Минимальная высота */
-    max-height: 150px; /* Максимальная высота */
+    resize: none;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    height: auto;
+    min-height: 110px;
+    max-height: 150px;
+    width: 100%;
 }
 
 #send-btn {
@@ -61,8 +67,8 @@
     font-size: 16px;
     transition: background-color 0.3s ease;
     position: absolute;
-    right: 20px; /* Увеличиваем отступ справа */
-    top: 20px; /* Увеличиваем отступ сверху */
+    right: 20px;
+    top: 20px;
 }
 
 .attach-button {
@@ -71,7 +77,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #555; /* Цвет фона, как у textarea */
+    background-color: #555;
     border: none;
     border-radius: 50%;
     color: #FFFFFF;
@@ -79,17 +85,12 @@
     font-size: 16px;
     transition: background-color 0.3s ease;
     position: absolute;
-    right: 20px; /* Отступ справа */
-    top: 70px; /* Отступ сверху (кнопка "Отправить" + отступ) */
+    right: 20px;
+    top: 70px;
 }
 
 .attach-button:hover {
-    background-color: #7e7e7e; /* Изменение цвета при наведении */
-}
-
-/* Стили для кнопки отправки */
-#send-btn {
-    transition: background-color 0.3s ease;
+    background-color: #7e7e7e;
 }
 
 #send-btn:hover {
@@ -104,26 +105,47 @@
     background-color: #cc0000;
 }
 
-/* Минималистичный скроллбар для поля ввода */
 #user-input::-webkit-scrollbar {
-    width: 4px; /* Узкий скроллбар */
+    width: 4px;
 }
 
 #user-input::-webkit-scrollbar-track {
-    background: transparent; /* Прозрачный трек */
+    background: transparent;
 }
 
 #user-input::-webkit-scrollbar-thumb {
-    background-color: #666; /* Цвет ползунка */
-    border-radius: 2px; /* Закругленные углы */
+    background-color: #666;
+    border-radius: 2px;
 }
 
 #user-input::-webkit-scrollbar-thumb:hover {
-    background-color: #888; /* Цвет при наведении */
+    background-color: #888;
 }
 
-/* Для Firefox */
 #user-input {
-    scrollbar-width: thin; /* Тонкий скроллбар */
-    scrollbar-color: #666 transparent; /* Цвет ползунка и трека */
+    scrollbar-width: thin;
+    scrollbar-color: #666 transparent;
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 70px 10px 120px;
+        margin-left: 0 !important;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .input-container {
+        width: calc(100% - 20px);
+        transform: translateX(-50%) !important;
+        left: 50%;
+        bottom: 10px;
+    }
+    
+    .chat-container {
+        max-width: 100%;
+        padding: 0 10px;
+    }
 }

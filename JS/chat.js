@@ -424,4 +424,3 @@ function showAlert(message, type = 'error') {
     }, 3000);
 }
 
-

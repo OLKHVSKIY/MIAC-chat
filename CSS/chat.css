@@ -1,9 +1,10 @@
 main {
     flex: 1;
-    padding: 80px 20px 150px 100px;
+    padding: 80px 20px 150px;
     display: flex;
     flex-direction: column;
-    transition: margin-left 0.3s ease;
+    transition: all 0.3s ease;
+    margin-left: 120px; /* Ширина сайдбара */
 }
 
 main.full-width {
@@ -11,23 +12,27 @@ main.full-width {
 }
 
 .chat-container {
-    max-width: 1200px;
     width: 100%;
+    max-width: 800px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     flex: 1;
 }
 
+
 #chat-window {
     flex: 1;
     overflow-y: auto;
     margin-bottom: 20px;
     margin-top: 20px;
+    margin-right: 100px;
     width: 100%;
     word-wrap: break-word;
     max-height: calc(100vh - 300px);
     padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 #chat-window::-webkit-scrollbar {
@@ -55,7 +60,23 @@ main.full-width {
 .message-container {
     display: flex;
     margin: 12px 0;
-    width: 95%;
+    width: 100%;
+}
+
+.user-message {
+    background-color: #FF6B35;
+    margin-left: auto;
+    max-width: 85%;
+    margin-right: 20px;
+    max-width: 500px;
+}
+
+.bot-message {
+    background-color: #444;
+    margin-right: auto;
+    max-width: 85%;
+    margin-left: 20px;
+    max-width: 600px;
 }
 
 .message-content {
@@ -64,18 +85,9 @@ main.full-width {
     max-width: 95%;
 }
 
-.user-message {
-    background-color: #FF6B35;
-    margin-left: auto;
-    margin-right: 20px;
-    max-width: 500px;
-}
-
-.bot-message {
-    background-color: #444;
-    margin-right: auto;
-    margin-left: 20px;
-    max-width: 600px;
+.typing-char {
+    opacity: 0;
+    display: inline-block;
 }
 
 .message {
