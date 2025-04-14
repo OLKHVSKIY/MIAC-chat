@@ -275,12 +275,16 @@ async function sendMessage() {
             console.error('Ошибка при сохранении ответа:', error);
         }
 
-        // Update chat title if first message
+        // Update chat title ONLY if it's the first message in chat
         if (!hasSentMessage) {
             try {
-                const shortTitle = message.substring(0, 30);
-                await chatStorage.updateChatTitle(chatId, shortTitle);
-                updateChatName(activeChat, shortTitle);
+                const messages = await chatStorage.getChatMessages(chatId);
+                // Проверяем, что в чате только 2 сообщения (наше только что отправленное и ответ)
+                if (messages.length === 2) {
+                    const shortTitle = message.substring(0, 30);
+                    await chatStorage.updateChatTitle(chatId, shortTitle);
+                    updateChatName(activeChat, shortTitle);
+                }
             } catch (error) {
                 console.error('Ошибка при обновлении названия чата:', error);
             }
@@ -423,4 +427,3 @@ function showAlert(message, type = 'error') {
         setTimeout(() => alertBox.remove(), 300);
     }, 3000);
 }
-

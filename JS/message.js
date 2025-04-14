@@ -22,61 +22,86 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function sendMessage() {
-    const messageText = userInput.value.trim();
-    if (messageText === '' || chatState.isWaitingForResponse) return;
+    const userInput = document.getElementById('user-input');
+    const message = userInput.value.trim();
+    if (!message) return;
 
-    // Сброс предыдущего состояния
-    if (chatState.abortController) {
-        chatState.abortController.abort();
+    if (!activeChat) {
+        await createNewChat();
+        return;
     }
-    chatState.abortController = new AbortController();
-    chatState.isWaitingForResponse = true;
+
+    const chatId = activeChat.dataset.id;
     
-    // Создаем сообщение пользователя
-    createUserMessage(messageText);
+    // Add user message to UI
+    const userMessageElement = createMessageElement('user', message);
+    chatWindow.appendChild(userMessageElement);
     userInput.value = '';
-    
-    // Меняем кнопку на "Стоп"
-    sendBtn.innerHTML = '<i class="fas fa-stop"></i>';
-    sendBtn.onclick = stopGeneration;
+
+    // Save user message
+    try {
+        await chatStorage.saveMessage(chatId, 'user', message);
+    } catch (error) {
+        console.error('Ошибка при сохранении сообщения:', error);
+    }
+
+    // Show typing indicator
+    const typingIndicator = addTypingIndicator();
+    isWaitingForResponse = true;
+    document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
 
     try {
-        // Показываем индикатор набора
-        const typingIndicator = createTypingIndicator();
-        
-        // Отправляем запрос
+        // Get AI response
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "qwen2.5:1.5b",
-                prompt: messageText,
-                stream: true
-            }),
-            signal: chatState.abortController.signal
+                model: currentModel,
+                prompt: message,
+                stream: false
+            })
         });
 
-        if (!response.ok) {
-            throw new Error(await response.text());
-        }
+        if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+        const data = await response.json();
 
-        // Убираем индикатор набора
         chatWindow.removeChild(typingIndicator);
-        
-        // Создаем контейнер для сообщения бота
-        const botMessage = createBotMessageContainer();
-        
-        // Обрабатываем потоковые данные
-        chatState.currentStreamReader = response.body.getReader();
-        await streamResponse(botMessage);
 
-    } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error('Error:', error);
-            showErrorMessage(error.message);
+        // Add AI response to UI
+        const botMessageElement = createMessageElement('bot', data.response);
+        chatWindow.appendChild(botMessageElement);
+
+        // Save AI response
+        try {
+            await chatStorage.saveMessage(chatId, 'bot', data.response);
+        } catch (error) {
+            console.error('Ошибка при сохранении ответа:', error);
         }
+
+        // Update chat title ONLY if it's the first message in chat
+        if (!hasSentMessage) {
+            try {
+                const messages = await chatStorage.getChatMessages(chatId);
+                // Проверяем, что в чате только 2 сообщения (наше только что отправленное и ответ)
+                if (messages.length === 2) {
+                    const shortTitle = message.substring(0, 30);
+                    await chatStorage.updateChatTitle(chatId, shortTitle);
+                    updateChatName(activeChat, shortTitle);
+                }
+            } catch (error) {
+                console.error('Ошибка при обновлении названия чата:', error);
+            }
+            hasSentMessage = true;
+        }
+    } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+        chatWindow.removeChild(typingIndicator);
+        addErrorMessage(`Ошибка: ${error.message}`);
     } finally {
-        resetChatState();
+        isWaitingForResponse = false;
+        document.getElementById('send-btn').innerHTML = '<i class="fas fa-arrow-up"></i>';
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        addCopyHandlers();
     }
 }
 
