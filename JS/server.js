@@ -6,10 +6,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cookieParser = require('cookie-parser');
+const ADMIN_ROLE_ID = 1;
 
 const app = express();
 const PORT = 4000;
-const SECRET_KEY = 'your-secret-key-123'; // В продакшене используйте переменные окружения
+const SECRET_KEY = 'your-secret-key-123';
 
 
 const pool = new Pool({
@@ -54,7 +55,7 @@ const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, SECRET_KEY);
     
     pool.query(
-      'SELECT user_id, username, is_active FROM users WHERE user_id = $1',
+      'SELECT user_id, username, is_active, role_id FROM users WHERE user_id = $1',
       [decoded.id],
       (err, result) => {
         if (err) {
@@ -64,6 +65,12 @@ const authenticateToken = (req, res, next) => {
 
         if (result.rows.length === 0 || !result.rows[0].is_active) {
           return res.status(403).json({ error: 'Пользователь не найден или неактивен' });
+        }
+
+        // Запрещаем удаление администраторов
+        if (req.method === 'DELETE' && req.path === '/api/user/delete-account' && 
+            result.rows[0].role_id === ADMIN_ROLE_ID) {
+          return res.status(403).json({ error: 'Администраторы не могут удалять свои аккаунты через интерфейс' });
         }
 
         req.user = result.rows[0];
@@ -292,48 +299,191 @@ app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
   }
 });
 
+// API: Удаление аккаунта пользователя
+app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+
+    // Начинаем транзакцию
+    await pool.query('BEGIN');
+
+    // 1. Получаем все чаты пользователя
+    const chatsResult = await pool.query(
+      'SELECT chat_id FROM chats WHERE user_id = $1',
+      [userId]
+    );
+    const chatIds = chatsResult.rows.map(row => row.chat_id);
+
+    // 2. Удаляем все сообщения пользователя
+    if (chatIds.length > 0) {
+      await pool.query(
+        `DELETE FROM messages WHERE chat_id = ANY($1)`,
+        [chatIds]
+      );
+    }
+
+    // 3. Удаляем все чаты пользователя
+    await pool.query(
+      'DELETE FROM chats WHERE user_id = $1',
+      [userId]
+    );
+
+    // 4. Удаляем самого пользователя
+    const deleteResult = await pool.query(
+      'DELETE FROM users WHERE user_id = $1 RETURNING user_id, username',
+      [userId]
+    );
+
+    if (deleteResult.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    // Фиксируем транзакцию
+    await pool.query('COMMIT');
+
+    // Очищаем куки
+    res.clearCookie('token');
+
+    res.json({ 
+      success: true,
+      message: `Аккаунт ${deleteResult.rows[0].username} и все связанные данные успешно удалены`,
+      deletedUserId: deleteResult.rows[0].user_id
+    });
+
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Ошибка удаления аккаунта:', err);
+    res.status(500).json({ 
+      error: 'Ошибка при удалении аккаунта',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 // API: Регистрация нового пользователя
 app.post('/api/register', async (req, res) => {
-    const { username, password, fullName, email, phone, telegram } = req.body;
+  const { username, password, fullName, email, phone, telegram } = req.body;
 
-    try {
-        // Проверяем существование пользователя
-        const userExists = await pool.query(
-            'SELECT * FROM users WHERE username = $1 OR email = $2',
-            [username, email]
-        );
+  try {
+      // 1. Проверяем, есть ли пользователь в списке одобренных
+      const approvedUser = await pool.query(
+          'SELECT role_id FROM approved_users WHERE full_name = $1',
+          [fullName]
+      );
 
-        if (userExists.rows.length > 0) {
-            return res.status(400).json({ 
-                error: 'Пользователь с таким логином или email уже существует' 
-            });
-        }
+      if (approvedUser.rows.length === 0) {
+          return res.status(403).json({ 
+              error: 'Ваше ФИО не найдено в списке разрешенных пользователей' 
+          });
+      }
 
-        // Хешируем пароль
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+      const roleId = approvedUser.rows[0].role_id;
 
-        // Очищаем телефон от форматирования
-        const cleanPhone = phone.replace(/[^\d+]/g, '');
+      // 2. Проверяем существование пользователя
+      const userExists = await pool.query(
+          'SELECT * FROM users WHERE username = $1 OR email = $2',
+          [username, email]
+      );
 
-        // Создаем пользователя
-        const newUser = await pool.query(
-            `INSERT INTO users 
-             (username, password_hash, full_name, email, phone, telegram_id, role_id, is_active)
-             VALUES ($1, $2, $3, $4, $5, $6, 2, true)
-             RETURNING user_id, username, full_name, email`,
-            [username, hashedPassword, fullName, email, cleanPhone, telegram || null]
-        );
+      if (userExists.rows.length > 0) {
+          return res.status(400).json({ 
+              error: 'Пользователь с таким логином или email уже существует' 
+          });
+      }
 
-        res.status(201).json({
-            success: true,
-            user: newUser.rows[0]
-        });
+      // 3. Хешируем пароль
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    } catch (err) {
-        console.error('Ошибка регистрации:', err);
-        res.status(500).json({ error: 'Ошибка сервера при регистрации' });
-    }
+      // 4. Очищаем телефон от форматирования
+      const cleanPhone = phone.replace(/[^\d+]/g, '');
+
+      // 5. Создаем пользователя с ролью из approved_users
+      const newUser = await pool.query(
+          `INSERT INTO users 
+           (username, password_hash, full_name, email, phone, telegram_id, role_id, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+           RETURNING user_id, username, full_name, email`,
+          [username, hashedPassword, fullName, email, cleanPhone, telegram || null, roleId]
+      );
+
+      res.status(201).json({
+          success: true,
+          user: newUser.rows[0]
+      });
+
+  } catch (err) {
+      console.error('Ошибка регистрации:', err);
+      res.status(500).json({ error: 'Ошибка сервера при регистрации' });
+  }
+});
+
+// API: Получить список одобренных пользователей (только для админов)
+app.get('/api/approved-users', authenticateToken, async (req, res) => {
+  if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+  }
+
+  try {
+      const result = await pool.query(
+          `SELECT au.id, au.full_name, au.position, au.role_id, r.role_name, 
+           au.created_at, au.updated_at
+           FROM approved_users au
+           JOIN roles r ON au.role_id = r.role_id`
+      );
+      res.json(result.rows);
+  } catch (err) {
+      console.error('Ошибка получения списка:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// API: Добавить одобренного пользователя (только для админов)
+app.post('/api/approved-users', authenticateToken, async (req, res) => {
+  if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+  }
+
+  const { full_name, position, role_id } = req.body;
+
+  try {
+      const result = await pool.query(
+          `INSERT INTO approved_users (full_name, position, role_id)
+           VALUES ($1, $2, $3)
+           RETURNING *`,
+          [full_name, position, role_id]
+      );
+      res.status(201).json(result.rows[0]);
+  } catch (err) {
+      console.error('Ошибка добавления:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// API: Удалить из списка одобренных (только для админов)
+app.delete('/api/approved-users/:id', authenticateToken, async (req, res) => {
+  if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+  }
+
+  try {
+      await pool.query(
+          'DELETE FROM approved_users WHERE id = $1',
+          [req.params.id]
+      );
+      res.json({ success: true });
+  } catch (err) {
+      console.error('Ошибка удаления:', err);
+      res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/admin/approved-users', authenticateToken, (req, res) => {
+  if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).send('Доступ запрещен');
+  }
+  res.sendFile(path.join(__dirname, '../HTML/admin-approved-users.html'));
 });
 
 // API: Выход из системы

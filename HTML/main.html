@@ -118,6 +118,29 @@
             </div>
         </div>
 
+        <!-- Модальное окно подтверждения удаления -->
+<div id="delete-account-modal" class="modal">
+    <div class="modal-exit">
+        <h3>Удаление аккаунта</h3>
+        <p style="line-height: 1.4; margin-bottom: 40px; display: block;">Вы уверены, что хотите <strong>удалить</strong> свой аккаунт? <br> 
+            Все ваши чаты и сообщения будут <strong>безвозвратно</strong> удалены.</p>
+        <div class="modal_exit-buttons">
+          <button id="confirm-delete-btn" class="modal-btn confirm">Удалить аккаунт</button>
+          <button id="cancel-delete-btn" class="modal-btn cancel">Отмена</button>
+        </div>
+    </div>
+  </div>
+  
+  <!-- Уведомление об успешном удалении -->
+  <div id="delete-notification" class="notification">
+    <div class="notification-content">
+      <p>Аккаунт успешно удален</p>
+    </div>
+  </div>
+  
+  <!-- Уведомление об ошибке -->
+  <div id="error-alert" class="alert error" style="display: none;"></div>
+
         <!-- Модальное окно подтверждения выхода -->
         <div id="logoutModal" class="modal">
             <div class="modal-exit">

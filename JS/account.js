@@ -25,6 +25,77 @@ async function fetchUserProfile() {
     }
 }
 
+async function deleteUserAccount() {
+    // Показываем модальное окно
+    const modal = document.getElementById('delete-account-modal');
+    const confirmBtn = document.getElementById('confirm-delete-btn');
+    const cancelBtn = document.getElementById('cancel-delete-btn');
+    const notification = document.getElementById('delete-notification');
+    const errorAlert = document.getElementById('error-alert');
+  
+    modal.style.display = 'flex';
+  
+    // Ожидаем решения пользователя
+    return new Promise((resolve) => {
+      cancelBtn.onclick = () => {
+        modal.style.display = 'none';
+        resolve(false);
+      };
+  
+      confirmBtn.onclick = async () => {
+        try {
+          modal.style.display = 'none';
+          
+          const response = await fetch('http://localhost:4000/api/user/delete-account', {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          });
+  
+          const result = await response.json();
+  
+          if (!response.ok) {
+            throw new Error(result.error || 'Не удалось удалить аккаунт');
+          }
+  
+          // Показываем уведомление об успехе
+          notification.classList.add('active');
+          
+          // Очищаем локальное хранилище
+          localStorage.removeItem('authToken');
+          
+          // Закрываем модальное окно профиля
+          const profileModal = document.getElementById('profile-modal');
+          if (profileModal) profileModal.style.display = 'none';
+  
+          // Через 3 секунды перенаправляем на страницу входа
+          setTimeout(() => {
+            notification.classList.remove('active');
+            window.location.href = '/HTML/login.html';
+          }, 1000);
+  
+        } catch (error) {
+          console.error('Ошибка удаления аккаунта:', error);
+          
+          // Показываем ошибку
+          errorAlert.textContent = error.message;
+          errorAlert.style.display = 'block';
+          
+          setTimeout(() => {
+            errorAlert.classList.add('fade-out');
+            setTimeout(() => {
+              errorAlert.style.display = 'none';
+              errorAlert.classList.remove('fade-out');
+            }, 100);
+          }, 1000);
+        }
+      };
+    });
+  }
+
 async function updateUserProfile(userData) {
     if (!userData) {
         console.warn('Данные пользователя не получены.');
@@ -71,22 +142,39 @@ function setupEventListeners() {
     const userProfileButton = document.getElementById('user-profile');
     const profileModal = document.getElementById('profile-modal');
     const modalCloseButton = document.getElementById('modal-close');
-
+    
+    // Находим кнопку удаления аккаунта в навигации
+    const navItems = document.querySelectorAll('.nav-item');
+  const deleteAccountBtn = Array.from(navItems).find(item => 
+    item.textContent.includes('Удалить аккаунт')
+  );
+  
     if (userProfileButton && profileModal && modalCloseButton) {
-        userProfileButton.addEventListener('click', () => {
-            profileModal.style.display = 'flex';
-        });
+      userProfileButton.addEventListener('click', () => {
+        profileModal.style.display = 'flex';
+      });
 
-        modalCloseButton.addEventListener('click', () => {
-            profileModal.style.display = 'none';
+      if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          deleteUserAccount();
         });
-
-        profileModal.addEventListener('click', (e) => {
-            if (e.target === profileModal) {
-                profileModal.style.display = 'none';
-            }
-        });
+      }
+  
+      modalCloseButton.addEventListener('click', () => {
+        profileModal.style.display = 'none';
+      });
+  
+      profileModal.addEventListener('click', (e) => {
+        if (e.target === profileModal) {
+          profileModal.style.display = 'none';
+        }
+      });
     }
+
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', deleteUserAccount);
+      }
 
     // Обработчики для внешних ссылок
     const setupLink = (id, url) => {

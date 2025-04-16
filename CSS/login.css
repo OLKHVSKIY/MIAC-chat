@@ -110,7 +110,7 @@ body {
   background: #E8F0FE;
   height: 40px;
   display: flex;
-  width: 250px;
+  width: 100%;
   align-items: center;
   border-radius: 10px;
   border: 1px solid #ccc;
@@ -127,10 +127,44 @@ body {
   background: none;
   border: none;
   outline: none;
-  width: 190px;
+  width: 200px;
+  min-width: 100px;
   height: 100%;
   margin-left: 10px;
   font-family: 'Roboto', sans-serif;
+  color: #2d2f33;
+}
+
+.text-input, 
+.text-input-reg {
+  background: #E8F0FE;
+  height: 40px;
+  display: flex;
+  width: 100%;
+  max-width: 350px; /* Единая максимальная ширина */
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  padding: 0 15px;
+  margin: 10px auto; /* Автоматические отступы по бокам для центрирования */
+  transition: all 0.3s ease;
+}
+
+/* Стили для инпутов в обоих формах */
+.text-input input,
+.text-input-reg input {
+  background: none;
+  border: none;
+  outline: none;
+  width: 100%; /* Занимает всю доступную ширину */
+  min-width: 100px;
+  height: 100%;
+  margin-left: 10px;
+  font-family: 'Roboto', sans-serif;
+  color: #2d2f33;
+}
+
+.text-input-reg i{
   color: #2d2f33;
 }
 
@@ -202,6 +236,7 @@ body {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
+
 }
 
 .back-btn:hover {
@@ -217,6 +252,7 @@ body {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
+
 }
 
 .register-submit-btn:hover {
@@ -298,3 +334,55 @@ body {
   color: #333;
 }
 
+@media (max-width: 1100px) {
+  .container {
+    width: 60vw;
+  }
+  
+  .design .pill-4 {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    width: 70vw;
+  }
+  
+  .design .pill-4 {
+    display: none;
+  }
+}
+
+@media (max-width: 868px) {
+  .container {
+    width: 80vw;
+    grid-template-columns: 100%;
+    grid-template-areas: "login";
+  }
+  
+  .design {
+    display: none;
+  }
+  
+  .login {
+    padding: 40px;
+  }
+  
+  .text-input {
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .login-btn, 
+  .register-btn {
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+
+  }
+}

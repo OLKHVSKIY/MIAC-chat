@@ -1,0 +1,54 @@
+<!-- admin-approved-users.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление одобренными пользователями</title>
+    <link rel="stylesheet" href="/CSS/styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Управление одобренными пользователями</h1>
+        
+        <div class="add-user-form">
+            <h2>Добавить нового пользователя</h2>
+            <form id="addApprovedUserForm">
+                <div class="form-group">
+                    <label>ФИО:</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label>Должность:</label>
+                    <input type="text" id="position">
+                </div>
+                <div class="form-group">
+                    <label>Роль:</label>
+                    <select id="roleId" required>
+                        <option value="1">Администратор</option>
+                        <option value="2" selected>Пользователь</option>
+                        <option value="3">Менеджер</option>
+                    </select>
+                </div>
+                <button type="submit">Добавить</button>
+            </form>
+        </div>
+        
+        <div class="users-list">
+            <h2>Список одобренных пользователей</h2>
+            <table id="approvedUsersTable">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Должность</th>
+                        <th>Роль</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/JS/approved.js"></script>
+</body>
+</html>

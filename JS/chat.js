@@ -248,7 +248,7 @@ async function sendMessage() {
     document.getElementById('send-btn').innerHTML = '<i class="fas fa-stop"></i>';
 
     try {
-        // Get AI response
+        // получение AI запроса
         const response = await fetch(`${API_URL}/api/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -264,18 +264,17 @@ async function sendMessage() {
 
         chatWindow.removeChild(typingIndicator);
 
-        // Add AI response to UI
+        // aI response to uI
         const botMessageElement = createMessageElement('bot', data.response);
         chatWindow.appendChild(botMessageElement);
 
-        // Save AI response
+       
         try {
             await chatStorage.saveMessage(chatId, 'bot', data.response);
         } catch (error) {
             console.error('Ошибка при сохранении ответа:', error);
         }
 
-        // Update chat title ONLY if it's the first message in chat
         if (!hasSentMessage) {
             try {
                 const messages = await chatStorage.getChatMessages(chatId);
