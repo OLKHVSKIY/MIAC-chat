@@ -461,20 +461,46 @@ app.post('/api/approved-users', authenticateToken, async (req, res) => {
   }
 });
 
-// API: Удалить из списка одобренных (только для админов)
-app.delete('/api/approved-users/:id', authenticateToken, async (req, res) => {
+
+// API: Получить список одобренных пользователей с фильтрацией
+app.get('/api/approved-users', authenticateToken, async (req, res) => {
   if (req.user.role_id !== ADMIN_ROLE_ID) {
       return res.status(403).json({ error: 'Доступ запрещен' });
   }
 
   try {
-      await pool.query(
-          'DELETE FROM approved_users WHERE id = $1',
-          [req.params.id]
-      );
-      res.json({ success: true });
+      let query = `
+          SELECT au.id, au.full_name, au.position, au.role_id, r.role_name, 
+                 au.created_at, au.updated_at
+          FROM approved_users au
+          JOIN roles r ON au.role_id = r.role_id
+      `;
+
+      const params = [];
+      const conditions = [];
+
+      // Фильтрация по роли, если указана
+      if (req.query.role_id) {
+          conditions.push(`au.role_id = $${params.length + 1}`);
+          params.push(req.query.role_id);
+      }
+
+      // Поиск по ФИО, если указан
+      if (req.query.search) {
+          conditions.push(`au.full_name ILIKE $${params.length + 1}`);
+          params.push(`%${req.query.search}%`);
+      }
+
+      if (conditions.length > 0) {
+          query += ' WHERE ' + conditions.join(' AND ');
+      }
+
+      query += ' ORDER BY au.full_name';
+
+      const result = await pool.query(query, params);
+      res.json(result.rows);
   } catch (err) {
-      console.error('Ошибка удаления:', err);
+      console.error('Ошибка получения списка:', err);
       res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
