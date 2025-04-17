@@ -101,20 +101,6 @@
     margin-bottom: 30px;
 }
 
-.profile-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: #2d2d2d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #aaa;
-    font-size: 30px;
-    margin-right: 25px;
-    border: 2px solid #444;
-}
-
 .profile-info h3 {
     color: #fff;
     font-size: 22px;

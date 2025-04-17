@@ -1,59 +1,74 @@
-/* Аватарка бота */
-.bot-avatar {
-    width: 36px;
-    height: 36px;
+/* Аватар пользователя */
+.profile-avatar, .user-avatar {
+    position: relative;
+    width: 110px;
+    height: 110px;
     border-radius: 50%;
-    margin-right: 12px;
-    flex-shrink: 0;
-    background: url('/IMG/miac_short.png') center/25px 25px no-repeat;
-    border: 1px solid #444;
-    box-sizing: border-box; /* Чтобы border не увеличивал размер элемента */
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .bot-avatar {
-        width: 28px;
-        height: 28px;
-        margin-right: 8px;
-        background-size: 23px 23px; /* Уменьшаем изображение для мобильных */
-    }
-    
-    .message {
-        max-width: 80%;
-    }
-}
-
-.typing-message {
+    background-color: #2d2d2d;
     display: flex;
-    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 30px;
+    margin-right: 25px;
+    border: 2px solid #444;
+    overflow: hidden;
 }
 
-.typing-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #ccc; /* Change to your desired color */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+}
+
+.profile-avatar img, .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--ui-blue);
+    color: rgb(0, 0, 0);
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    animation: bounce 1.2s infinite ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.typing-dot:nth-child(1) {
-    animation-delay: 0s;
+.profile-avatar:hover .avatar-edit-icon {
+    opacity: 1;
 }
 
-.typing-dot:nth-child(2) {
-    animation-delay: 0.2s;
+/* Уведомления */
+.alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
-.typing-dot:nth-child(3) {
-    animation-delay: 0.4s;
+.alert.success {
+    background-color: #4CAF50;
 }
 
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-8px);
-    }
+.alert.error {
+    background-color: #f44336;
+}
+
+.alert.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }

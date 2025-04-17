@@ -311,6 +311,57 @@ app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
   }
 });
 
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
+// API для загрузки аватара
+app.post('/api/user/upload-avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Файл не загружен' });
+    }
+
+    const avatarBuffer = req.file.buffer;
+    const mimeType = req.file.mimetype;
+
+    await pool.query(
+      'UPDATE users SET avatar = $1, avatar_url = NULL WHERE user_id = $2',
+      [avatarBuffer, req.user.user_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Ошибка загрузки аватара:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// API для получения аватара
+app.get('/api/user/avatar', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT avatar, avatar_url FROM users WHERE user_id = $1',
+      [req.user.user_id]
+    );
+
+    if (result.rows.length === 0 || (!result.rows[0].avatar && !result.rows[0].avatar_url)) {
+      return res.status(404).json({ error: 'Аватар не найден' });
+    }
+
+    const user = result.rows[0];
+    
+    if (user.avatar) {
+      res.set('Content-Type', 'image/jpeg');
+      return res.send(user.avatar);
+    } else if (user.avatar_url) {
+      return res.redirect(user.avatar_url);
+    }
+  } catch (err) {
+    console.error('Ошибка получения аватара:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // API: Удаление аккаунта пользователя
 app.delete('/api/user/delete-account', authenticateToken, async (req, res) => {
   try {
