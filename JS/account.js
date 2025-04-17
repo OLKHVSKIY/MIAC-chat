@@ -96,7 +96,7 @@ async function deleteUserAccount() {
     });
   }
 
-async function updateUserProfile(userData) {
+  async function updateUserProfile(userData) {
     if (!userData) {
         console.warn('Данные пользователя не получены.');
         return;
@@ -121,6 +121,12 @@ async function updateUserProfile(userData) {
         const element = document.getElementById(id);
         if (element) element.textContent = value;
     });
+
+    // Показываем пункт "Управление пользователями" только для администраторов
+    const manageUsersItem = document.querySelector('.nav-item.manage-users');
+    if (manageUsersItem) {
+        manageUsersItem.style.display = userData.role_id === 1 ? 'block' : 'none';
+    }
 }
 
 // Инициализация при загрузке страницы

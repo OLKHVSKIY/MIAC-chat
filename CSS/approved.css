@@ -54,8 +54,8 @@ body {
 }
 
 .icon-cross{
-    width: 10px;
-    height: 10px;
+    width: 30px;
+    height: 30px;
 }
 
 .search-input {
@@ -83,6 +83,7 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: background 0.2s;
+    margin-left: 60px;
 }
 
 .search-clear:hover {
@@ -121,6 +122,7 @@ body {
     border: none;
     border-radius: 6px;
     padding: 8px 16px;
+    height: 36px;
     font-size: 14px;
     cursor: pointer;
     transition: background 0.2s;
@@ -158,6 +160,7 @@ body {
 }
 
 .page-input {
+    height: 20px;
     width: 50px;
     text-align: center;
     background: rgba(255, 255, 255, 0.1);
@@ -319,6 +322,30 @@ body {
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     font-size: 14px;
+}
+
+.form-group-select {
+    background-color:#2d2f33;
+    color: white; /* Белый текст */
+    border: 1px solid #444; /* Темная граница */
+    padding: 8px; /* Внутренние отступы */
+    border-radius: 20px; /* Закругленные углы */
+    width: 100%; /* Ширина */
+    font-size: 16px; /* Размер шрифта */
+    cursor: pointer; /* Курсор "рука" */
+}
+
+/* Стили для выпадающего меню */
+.form-group-select option {
+    background-color: #2d2f33;
+    color: white; /* Белый текст для пунктов */
+    padding: 8px; /* Отступы для пунктов */
+}
+
+/* Стили для фокуса */
+.form-group-select:focus {
+    outline: none; /* Убираем обводку при фокусе */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Добавляем легкую подсветку */
 }
 
 .form-buttons {

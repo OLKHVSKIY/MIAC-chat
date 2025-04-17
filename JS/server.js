@@ -419,100 +419,199 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// API: Получить список одобренных пользователей (только для админов)
-app.get('/api/approved-users', authenticateToken, async (req, res) => {
-  if (req.user.role_id !== ADMIN_ROLE_ID) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
-  }
-
-  try {
-      const result = await pool.query(
-          `SELECT au.id, au.full_name, au.position, au.role_id, r.role_name, 
-           au.created_at, au.updated_at
-           FROM approved_users au
-           JOIN roles r ON au.role_id = r.role_id`
-      );
-      res.json(result.rows);
-  } catch (err) {
-      console.error('Ошибка получения списка:', err);
-      res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// API: Добавить одобренного пользователя (только для админов)
+// API для работы с одобренными пользователями (только для админов)
 app.post('/api/approved-users', authenticateToken, async (req, res) => {
-  if (req.user.role_id !== ADMIN_ROLE_ID) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
-  }
-
-  const { full_name, position, role_id } = req.body;
-
   try {
-      const result = await pool.query(
-          `INSERT INTO approved_users (full_name, position, role_id)
-           VALUES ($1, $2, $3)
-           RETURNING *`,
-          [full_name, position, role_id]
-      );
-      res.status(201).json(result.rows[0]);
+    if (req.user.role_id !== ADMIN_ROLE_ID) {
+      console.log(`Попытка доступа не админа (user_id: ${req.user.user_id})`);
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
+
+    const { full_name, position, role_id } = req.body;
+
+    if (!full_name || !role_id) {
+      return res.status(400).json({ error: 'Необходимо указать ФИО и роль' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO approved_users (full_name, position, role_id)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [full_name.trim(), position?.trim(), role_id]
+    );
+
+    console.log(`Добавлен новый одобренный пользователь: ${full_name}`);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-      console.error('Ошибка добавления:', err);
-      res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Ошибка добавления одобренного пользователя:', err);
+    
+    if (err.code === '23505') { // Ошибка уникальности
+      return res.status(409).json({ error: 'Пользователь с таким ФИО уже существует' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
 
+// API: Удалить одобренного пользователя (только для админов)
+app.delete('/api/approved-users/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
 
-// API: Получить список одобренных пользователей с фильтрацией
+    const result = await pool.query(
+      'DELETE FROM approved_users WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Пользователь удален из списка одобренных',
+      deletedUser: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Ошибка удаления одобренного пользователя:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 app.get('/api/approved-users', authenticateToken, async (req, res) => {
-  if (req.user.role_id !== ADMIN_ROLE_ID) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
-  }
-
   try {
-      let query = `
-          SELECT au.id, au.full_name, au.position, au.role_id, r.role_name, 
-                 au.created_at, au.updated_at
-          FROM approved_users au
-          JOIN roles r ON au.role_id = r.role_id
-      `;
+    console.log(`Запрос на /api/approved-users от user_id: ${req.user.user_id}`);
+    
+    if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
 
-      const params = [];
-      const conditions = [];
-
-      // Фильтрация по роли, если указана
-      if (req.query.role_id) {
-          conditions.push(`au.role_id = $${params.length + 1}`);
-          params.push(req.query.role_id);
-      }
-
-      // Поиск по ФИО, если указан
-      if (req.query.search) {
-          conditions.push(`au.full_name ILIKE $${params.length + 1}`);
-          params.push(`%${req.query.search}%`);
-      }
-
-      if (conditions.length > 0) {
-          query += ' WHERE ' + conditions.join(' AND ');
-      }
-
-      query += ' ORDER BY au.full_name';
-
-      const result = await pool.query(query, params);
-      res.json(result.rows);
+    const result = await pool.query(
+      `SELECT 
+        au.id, au.full_name, au.position, au.role_id, 
+        r.role_name, au.created_at, au.updated_at,
+        u.user_id
+       FROM approved_users au
+       JOIN roles r ON au.role_id = r.role_id
+       LEFT JOIN users u ON au.user_id = u.user_id
+       ORDER BY au.full_name`
+    );
+    
+    console.log(`Отправлено одобренных пользователей: ${result.rows.length}`);
+    res.json(result.rows);
   } catch (err) {
-      console.error('Ошибка получения списка:', err);
-      res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Ошибка получения списка одобренных пользователей:', err);
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
 
+// API для работы с пользователями системы (только для админов)
+app.get('/api/users', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+        u.user_id, u.username, u.full_name, u.email,
+        u.phone, u.telegram_id, u.role_id, u.is_active,
+        r.role_name, u.position_id, p.position_name
+       FROM users u
+       LEFT JOIN roles r ON u.role_id = r.role_id
+       LEFT JOIN positions p ON u.position_id = p.position_id
+       ORDER BY u.full_name`
+    );
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Ошибка получения списка пользователей:', err);
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+app.delete('/api/users/:userId', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== ADMIN_ROLE_ID) {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
+
+    const userId = req.params.userId;
+
+    if (userId == req.user.user_id) {
+      return res.status(400).json({ error: 'Нельзя удалить самого себя' });
+    }
+
+    await pool.query('BEGIN');
+
+    // Удаляем сообщения пользователя
+    await pool.query(
+      `DELETE FROM messages 
+       WHERE chat_id IN (SELECT chat_id FROM chats WHERE user_id = $1)`,
+      [userId]
+    );
+
+    // Удаляем чаты пользователя
+    await pool.query(
+      'DELETE FROM chats WHERE user_id = $1',
+      [userId]
+    );
+
+    // Удаляем самого пользователя
+    const deleteResult = await pool.query(
+      'DELETE FROM users WHERE user_id = $1 RETURNING user_id, username',
+      [userId]
+    );
+
+    if (deleteResult.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    await pool.query('COMMIT');
+
+    res.json({ 
+      success: true,
+      message: `Пользователь ${deleteResult.rows[0].username} успешно удален`,
+      deletedUserId: deleteResult.rows[0].user_id
+    });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Ошибка удаления пользователя:', err);
+    res.status(500).json({ 
+      error: 'Ошибка при удалении пользователя',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// Маршруты для страниц
 app.get('/admin/approved-users', authenticateToken, (req, res) => {
   if (req.user.role_id !== ADMIN_ROLE_ID) {
-      return res.status(403).send('Доступ запрещен');
+    return res.status(403).send('Доступ запрещен');
   }
   res.sendFile(path.join(__dirname, '../HTML/admin-approved-users.html'));
 });
 
-// API: Выход из системы
+app.get('/HTML/approved.html', authenticateToken, (req, res) => {
+  if (req.user.role_id !== ADMIN_ROLE_ID) {
+    return res.status(403).send('Доступ запрещен');
+  }
+  res.sendFile(path.join(__dirname, '../HTML/approved.html'));
+});
+
+// API выхода из системы
 app.post('/api/logout', (req, res) => {
   res.clearCookie('token');
   res.json({ success: true });
@@ -531,7 +630,6 @@ app.use((err, req, res, next) => {
     details: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
-
 // Запуск сервера
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\x1b[35mСервер запущен\x1b[0m на http://localhost:${PORT}`);

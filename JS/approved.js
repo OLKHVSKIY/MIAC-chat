@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    // Проверка аутентификации
+    if (!localStorage.getItem('authToken')) {
+        window.location.href = '/login';
+        return;
+    }
+
     // DOM элементы
     const tableBody = document.querySelector('#approvedUsersTable tbody');
     const searchInput = document.getElementById('searchInput');
@@ -12,6 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const pageInput = document.getElementById('pageNumber');
+    const API_BASE_URL = 'http://localhost:4000';
+    const ADMIN_PANEL = true;
 
     // Состояние
     let currentPage = 1;
@@ -19,57 +27,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     let allUsers = [];
     let filteredUsers = [];
 
-    // Загрузка данных
     async function loadApprovedUsers() {
         try {
-            const response = await fetch('/api/approved-users', {
+            const approvedResponse = await fetch(`${API_BASE_URL}/api/approved-users`, {
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
                 }
             });
-            
-            if (!response.ok) {
-                throw new Error('Ошибка загрузки списка');
+    
+            if (!approvedResponse.ok) {
+                // Пытаемся получить JSON с ошибкой, если есть
+                let errorData;
+                try {
+                    errorData = await approvedResponse.json();
+                } catch {
+                    errorData = { error: approvedResponse.statusText };
+                }
+                throw new Error(errorData.error || 'Ошибка загрузки данных');
             }
+    
+            allUsers = await approvedResponse.json();
+            console.log('Загружено одобренных пользователей:', allUsers.length);
             
-            allUsers = await response.json();
             applyFilters();
+            renderUsersList();
         } catch (error) {
-            console.error('Ошибка:', error);
-            showAlert(error.message, 'error');
+            console.error('Ошибка загрузки:', error);
+            showAlert(`Ошибка: ${error.message}`, 'error');
         }
     }
 
-    // Фильтрация и поиск
-    function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const roleFilterValue = roleFilter.value;
-        
-        filteredUsers = allUsers.filter(user => {
-            const matchesSearch = user.full_name.toLowerCase().includes(searchTerm);
-            const matchesRole = !roleFilterValue || user.role_id.toString() === roleFilterValue;
-            return matchesSearch && matchesRole;
-        });
-        
-        currentPage = 1;
-        renderUsersList();
-    }
+
+   // Фильтрация и поиск
+   function applyFilters() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const roleFilterValue = roleFilter.value;
+    
+    filteredUsers = allUsers.filter(user => {
+        const matchesSearch = user.full_name.toLowerCase().includes(searchTerm);
+        const matchesRole = !roleFilterValue || user.role_id.toString() === roleFilterValue;
+        return matchesSearch && matchesRole;
+    });
+    
+    currentPage = 1;
+    renderUsersList();
+}
 
     // Отображение данных
     function renderUsersList() {
         tableBody.innerHTML = '';
         
+        if (filteredUsers.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="4" class="no-data">Нет данных для отображения</td>`;
+            tableBody.appendChild(row);
+            updatePagination();
+            return;
+        }
+
         const startIndex = (currentPage - 1) * itemsPerPage;
         const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
         
         paginatedUsers.forEach(user => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${user.full_name}</td>
+                <td>${user.full_name || 'Не указано'}</td>
                 <td>${user.position || '-'}</td>
-                <td>${user.role_name}</td>
-                <td>
-                    <button class="action-button delete" data-id="${user.id}">Удалить</button>
+                <td>${user.role_name || 'Не указана'}</td>
+                <td class="actions-column">
+                    ${user.user_id ? `
+                        <button class="action-button delete-user" data-id="${user.user_id}">
+                            Удалить из системы
+                        </button>
+                    ` : ''}
+                    <button class="action-button delete" data-id="${user.id}">
+                        Удалить
+                    </button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -77,6 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         updatePagination();
         setupDeleteButtons();
+        setupDeleteUserButtons();
     }
 
     // Пагинация
@@ -93,21 +129,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setupDeleteButtons() {
         document.querySelectorAll('.action-button.delete').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (confirm('Вы уверены, что хотите удалить этого пользователя из списка одобренных?')) {
+                const row = btn.closest('tr');
+                const fullName = row.querySelector('td:first-child').textContent;
+                
+                if (confirm(`Вы уверены, что хотите удалить ${fullName} из списка одобренных?`)) {
                     try {
-                        const response = await fetch(`/api/approved-users/${btn.dataset.id}`, {
+                        const response = await fetch(`${API_BASE_URL}/api/approved-users/${btn.dataset.id}`, {
                             method: 'DELETE',
                             headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                            }
+                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include'
                         });
-                        
+
                         if (!response.ok) {
-                            throw new Error('Ошибка удаления');
+                            const error = await response.json();
+                            throw new Error(error.error || 'Ошибка удаления');
                         }
-                        
+
                         await loadApprovedUsers();
-                        showAlert('Пользователь удалён из списка', 'success');
+                        showAlert('Пользователь удалён из списка одобренных', 'success');
                     } catch (error) {
                         console.error('Ошибка:', error);
                         showAlert(error.message, 'error');
@@ -160,6 +202,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    function setupDeleteUserButtons() {
+        document.querySelectorAll('.action-button.delete-user').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                // Находим строку таблицы, в которой была нажата кнопка
+                const row = e.target.closest('tr');
+                const fullName = row.querySelector('td:first-child').textContent;
+                
+                if (confirm(`Вы уверены, что хотите полностью удалить пользователя ${fullName}? Это действие нельзя отменить!`)) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/users/${btn.dataset.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include'
+                        });
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Ошибка удаления');
+                        }
+                        
+                        await loadApprovedUsers();
+                        showAlert('Пользователь полностью удален из системы', 'success');
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        showAlert(error.message, 'error');
+                    }
+                }
+            });
+        });
+    }
+
     function closeModalHandler() {
         modal.style.display = 'none';
         addUserForm.reset();
@@ -175,7 +251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         
         try {
-            const response = await fetch('/api/approved-users', {
+            const response = await fetch(`${API_BASE_URL}/api/approved-users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

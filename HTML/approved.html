@@ -5,13 +5,14 @@
     <title>Управление пользователями</title>
     <link rel="icon" href="/IMG/miac_short.png">
     <link rel="stylesheet" href="/CSS/approved.css">
+    <link rel="stylesheet" href="/CSS/notification.css">
     <!-- <link rel="stylesheet" href="/CSS/styles.css"> -->
 
 </head>
 <body>
     <div class="admin-container">
         <div class="header-content">
-            <h1 class="header-title">Одобренные пользователи</h1>
+            <h1 class="header-title"> <b>Одобренные пользователи</b></h1>
             <div class="header-search">
                 <form class="search-form" id="searchForm">
                     <input
@@ -22,7 +23,7 @@
                         autocomplete="off"
                     >
                     <button type="button" id="clearButton" class="search-clear">
-                        <img src="/IMG/icon/icon-cross.png" alt="Очистить">
+                        <img class="icon-cross" src="/IMG/icon/icon-cross.png" alt="Очистить">
                     </button>
                 </form>
             </div>
@@ -85,7 +86,7 @@
                 </div>
                 <div class="form-group">
                     <label for="modalRoleId">Роль:</label>
-                    <select id="modalRoleId" required>
+                    <select class="form-group-select" id="modalRoleId" required>
                         <option value="1">Администратор</option>
                         <option value="2" selected>Пользователь</option>
                         <option value="3">Менеджер</option>

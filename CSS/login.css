@@ -110,7 +110,6 @@ body {
   background: #E8F0FE;
   height: 40px;
   display: flex;
-  width: 100%;
   align-items: center;
   border-radius: 10px;
   border: 1px solid #ccc;
@@ -127,7 +126,7 @@ body {
   background: none;
   border: none;
   outline: none;
-  width: 200px;
+  width: 100%;
   min-width: 100px;
   height: 100%;
   margin-left: 10px;
@@ -145,7 +144,7 @@ body {
   align-items: center;
   border-radius: 10px;
   border: 1px solid #ccc;
-  padding: 0 15px;
+  padding: 0 10px;
   margin: 10px auto; /* Автоматические отступы по бокам для центрирования */
   transition: all 0.3s ease;
 }
@@ -153,15 +152,15 @@ body {
 /* Стили для инпутов в обоих формах */
 .text-input input,
 .text-input-reg input {
-  background: none;
-  border: none;
-  outline: none;
-  width: 100%; /* Занимает всю доступную ширину */
-  min-width: 100px;
-  height: 100%;
-  margin-left: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 0 40px 0 10px; /* Добавляем отступ справа для иконки */
+  border-radius: 10px;
   font-family: 'Roboto', sans-serif;
+  background: #E8F0FE;
   color: #2d2f33;
+  outline: none;
+  transition: all 0.3s ease;
 }
 
 .text-input-reg i{
@@ -317,17 +316,31 @@ body {
 
 .password-container {
   position: relative;
-  height: 100%;
+  width: 100%;
+  max-width: 350px; /* Ширина поля ввода */
 }
 
 .password-toggle {
   position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 10px; /* Отступ от правого края */
+  top: 50%; /* Центрируем по вертикали */
+  transform: translateY(-50%); /* Корректировка центрирования */
   cursor: pointer;
   color: #666;
-  z-index: 2;
+  font-size: 16px; /* Размер иконки */
+  z-index: 2; /* Чтобы иконка была выше поля ввода */
+}
+
+.password-container input {
+  width: 100%;
+  height: 40px;
+  padding: 0 40px 0 10px; /* Добавляем отступ справа для иконки */
+  border-radius: 10px;
+  font-family: 'Roboto', sans-serif;
+  background: #E8F0FE;
+  color: #2d2f33;
+  outline: none;
+  transition: all 0.3s ease;
 }
 
 .password-toggle:hover {
