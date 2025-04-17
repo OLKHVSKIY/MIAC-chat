@@ -298,11 +298,25 @@ body {
     color: var(--text-primary);
 }
 
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 14px;
+    box-sizing: border-box;
+    margin: 0;
+}
+
 .modal-form {
     padding: 20px;
 }
 
-.form-group {
+.modal-form .form-group {
     margin-bottom: 15px;
 }
 
@@ -313,7 +327,18 @@ body {
     color: var(--text-secondary);
 }
 
-.form-group input,
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 14px;
+    box-sizing: border-box; /* Важно для правильного расчета ширины */
+    margin: 0; /* Сбрасываем стандартные отступы */
+}
+
 .form-group select {
     width: 100%;
     padding: 10px;
