@@ -225,6 +225,7 @@ body {
 
 /* Кнопки в таблице */
 .action-button {
+    height: 30px;
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 4px;

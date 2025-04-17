@@ -167,23 +167,35 @@ app.post('/api/user_login', async (req, res) => {
 // API: Получение полного профиля пользователя
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
+    console.log(`Запрос профиля от user_id: ${req.user.user_id}`);
+    
     const result = await pool.query(
       `SELECT 
-         u.user_id, u.username, u.full_name, 
-         u.phone, u.telegram_id, u.role_id,
-         r.role_name, u.position_id, p.position_name
+         u.user_id, 
+         u.username, 
+         u.full_name, 
+         u.phone, 
+         u.telegram_id, 
+         u.role_id,
+         r.role_name, 
+         u.position_id, 
+         p.position_name,
+         au.position as approved_position
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.role_id
        LEFT JOIN positions p ON u.position_id = p.position_id
+       LEFT JOIN approved_users au ON u.full_name = au.full_name
        WHERE u.user_id = $1`,
       [req.user.user_id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
+      console.log(`Пользователь ${req.user.user_id} не найден`);
+      return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
     const user = result.rows[0];
+    console.log(`Найден пользователь: ${user.username}`);
     
     res.json({
       username: user.username,
@@ -192,14 +204,14 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
       role_id: user.role_id,
       role_name: user.role_name || 'Неизвестная роль',
       position_id: user.position_id,
-      position_name: user.position_name || 'Не указана',
+      position_name: user.position_name || user.approved_position || 'Не указана',
       telegram_id: user.telegram_id || 'Не указан'
     });
   } catch (err) {
     console.error('Ошибка при получении профиля:', err);
     res.status(500).json({ 
-      error: 'Ошибка сервера',
-      details: err.message 
+      error: 'Внутренняя ошибка сервера',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
@@ -368,8 +380,8 @@ app.post('/api/register', async (req, res) => {
   try {
       // 1. Проверяем, есть ли пользователь в списке одобренных
       const approvedUser = await pool.query(
-          'SELECT role_id FROM approved_users WHERE full_name = $1',
-          [fullName]
+          'SELECT role_id, position FROM approved_users WHERE full_name = $1',
+          [fullName.trim()] // Убедимся, что пробелы не мешают
       );
 
       if (approvedUser.rows.length === 0) {
@@ -379,6 +391,7 @@ app.post('/api/register', async (req, res) => {
       }
 
       const roleId = approvedUser.rows[0].role_id;
+      const position = approvedUser.rows[0].position; // Получаем должность
 
       // 2. Проверяем существование пользователя
       const userExists = await pool.query(
@@ -399,18 +412,19 @@ app.post('/api/register', async (req, res) => {
       // 4. Очищаем телефон от форматирования
       const cleanPhone = phone.replace(/[^\d+]/g, '');
 
-      // 5. Создаем пользователя с ролью из approved_users
+      // 5. Создаем пользователя
       const newUser = await pool.query(
           `INSERT INTO users 
            (username, password_hash, full_name, email, phone, telegram_id, role_id, is_active)
            VALUES ($1, $2, $3, $4, $5, $6, $7, true)
            RETURNING user_id, username, full_name, email`,
-          [username, hashedPassword, fullName, email, cleanPhone, telegram || null, roleId]
+          [username, hashedPassword, fullName.trim(), email, cleanPhone, telegram || null, roleId]
       );
 
       res.status(201).json({
           success: true,
-          user: newUser.rows[0]
+          user: newUser.rows[0],
+          position: position // Возвращаем должность в ответе
       });
 
   } catch (err) {

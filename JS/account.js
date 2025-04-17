@@ -1,28 +1,39 @@
 async function fetchUserProfile() {
-    try {
-        const response = await fetch('http://localhost:4000/api/user/profile', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            },
-            credentials: 'include'
-        });
+  try {
+      const response = await fetch('http://localhost:4000/api/user/profile', {
+          method: 'GET',
+          headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+              'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+      });
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Токен недействителен - перенаправляем на страницу входа
-                window.location.href = '/HTML/login.html';
-                return null;
-            }
-            throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
+      if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          
+          if (response.status === 401) {
+              // Токен недействителен - перенаправляем на страницу входа
+              localStorage.removeItem('authToken');
+              window.location.href = '/HTML/login.html';
+              return null;
+          }
+          
+          throw new Error(errorData.error || `Ошибка сервера: ${response.status}`);
+      }
 
-        return await response.json();
-    } catch (error) {
-        console.error('Ошибка при загрузке профиля:', error);
-        alert('Не удалось загрузить данные пользователя. Проверьте подключение к серверу.');
-        return null;
-    }
+      return await response.json();
+  } catch (error) {
+      console.error('Ошибка при загрузке профиля:', error);
+      
+      // Показываем пользователю понятное сообщение
+      const errorMessage = error.message.includes('Failed to fetch') 
+          ? 'Нет соединения с сервером' 
+          : error.message;
+      
+      showAlert(errorMessage, 'error');
+      return null;
+  }
 }
 
 async function deleteUserAccount() {
@@ -113,7 +124,7 @@ async function deleteUserAccount() {
         'profile-full-name': userData.full_name || 'Имя не указано',
         'profile-phone': userData.phone || 'Телефон не указан',
         'profile-role': `Роль: ${userData.role_name || 'Неизвестная роль'}`,
-        'profile-position': `Должность: ${userData.position_name || 'Не указана'}`,
+        'profile-position': `Должность: ${userData.position_name || 'Не указана'}`, // Будет отображаться либо из positions, либо из approved_users
         'profile-telegram': `Telegram: ${userData.telegram_id || 'Не указан'}`
     };
 

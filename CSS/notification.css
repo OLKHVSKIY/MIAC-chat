@@ -113,7 +113,7 @@
     padding: 15px 25px;
     border-radius: 5px;
     color: white;
-    z-index: 1000;
+    z-index: 999999;
     opacity: 1;
     transition: opacity 0.3s;
   }
