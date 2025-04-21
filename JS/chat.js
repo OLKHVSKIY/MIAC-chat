@@ -308,7 +308,9 @@ function createMessageElement(sender, content, timestamp = null) {
     
     if (sender === 'bot') {
         container.innerHTML = `
-            <div class="avatar bot-avatar"></div>
+            <div class="avatar bot-avatar">
+                <img src="/IMG/miac_short.png" alt="AI Avatar">
+            </div>
             <div class="message-content">
                 <div class="message bot-message">
                     ${content.replace(/\n/g, '<br>')}
@@ -375,36 +377,31 @@ function setActiveChatById(chatId) {
 function addTypingIndicator() {
     const typingContainer = document.createElement('div');
     typingContainer.classList.add('message-container');
+    
     const avatar = document.createElement('div');
     avatar.classList.add('avatar', 'bot-avatar');
+    avatar.innerHTML = '<img src="/IMG/miac_short.png" alt="AI Avatar">';
+    
     const content = document.createElement('div');
     content.classList.add('message-content');
+    
     const typingElement = document.createElement('div');
     typingElement.classList.add('message', 'typing-message');
     typingElement.innerHTML = `
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
+        <div class="typing-dots">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
     `;
+    
     content.appendChild(typingElement);
     typingContainer.appendChild(avatar);
     typingContainer.appendChild(content);
     chatWindow.appendChild(typingContainer);
+    
     chatWindow.scrollTop = chatWindow.scrollHeight;
     return typingContainer;
-}
-
-function addErrorMessage(message) {
-    const errorContainer = document.createElement('div');
-    errorContainer.classList.add('message-container');
-    errorContainer.innerHTML = `
-        <div class="message-content">
-            <div class="message error-message">
-                ${message}
-            </div>
-        </div>
-    `;
-    chatWindow.appendChild(errorContainer);
 }
 
 function addCopyHandlers() {

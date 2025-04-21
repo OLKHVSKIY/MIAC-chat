@@ -85,11 +85,6 @@ main.full-width {
     max-width: 95%;
 }
 
-.typing-char {
-    opacity: 0;
-    display: inline-block;
-}
-
 .message {
     padding: 12px 16px;
     border-radius: 12px;
@@ -125,10 +120,24 @@ main.full-width {
     margin-top: 10px;
 }
 
+.typing-char {
+    opacity: 0;
+    display: inline-block;
+}
+
+/* Стили для индикатора набора сообщения */
+.typing-message {
+    display: flex;
+    align-items: center;
+    position: relative; /* Добавляем относительное позиционирование */
+}
+
 .typing-dots {
     display: inline-flex;
     align-items: center;
     height: 17px;
+    position: relative; /* Добавляем относительное позиционирование */
+    top: -5px; /* Поднимаем индикатор на 4px вверх */
 }
 
 .typing-dots div {
@@ -150,8 +159,14 @@ main.full-width {
 }
 
 @keyframes typingAnimation {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
+    0%, 80%, 100% { 
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .message.error {
