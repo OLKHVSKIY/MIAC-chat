@@ -1,8 +1,8 @@
 /* Аватар пользователя */
 .profile-avatar, .user-avatar {
     position: relative;
-    width: 105px;
-    height: 105px;
+    width: 115px;
+    height: 115px;
     border-radius: 50%;
     background-color: #2d2d2d;
     display: flex;
@@ -13,6 +13,7 @@
     margin-right: 25px;
     border: 2px solid #444;
     overflow: hidden;
+    box-sizing: border-box; /* Учитываем padding в размерах */
 }
 
 .user-avatar {
@@ -24,7 +25,7 @@
 .profile-avatar img, .user-avatar img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Обрезает изображение, чтобы оно полностью заполнило круг */
 }
 
 .profile-avatar .fa-user {
