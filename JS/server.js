@@ -484,6 +484,58 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// API: Смена пароля
+app.post('/api/user/change-password', authenticateToken, async (req, res) => {
+  const { current_password, new_password } = req.body;
+
+  if (!current_password || !new_password) {
+    return res.status(400).json({ error: 'Необходимо указать текущий и новый пароль' });
+  }
+
+  if (new_password.length < 6) {
+    return res.status(400).json({ error: 'Пароль должен содержать минимум 6 символов' });
+  }
+
+  try {
+    // Получаем текущий хеш пароля
+    const userResult = await pool.query(
+      'SELECT password_hash FROM users WHERE user_id = $1',
+      [req.user.user_id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const currentHash = userResult.rows[0].password_hash;
+
+    // Проверяем текущий пароль
+    const validPassword = await bcrypt.compare(current_password, currentHash);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Неверный текущий пароль' });
+    }
+
+    // Хешируем новый пароль
+    const salt = await bcrypt.genSalt(10);
+    const newHash = await bcrypt.hash(new_password, salt);
+
+    // Обновляем пароль в базе
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE user_id = $2',
+      [newHash, req.user.user_id]
+    );
+
+    res.json({ success: true, message: 'Пароль успешно изменен' });
+
+  } catch (err) {
+    console.error('Ошибка смены пароля:', err);
+    res.status(500).json({ 
+      error: 'Ошибка сервера при смене пароля',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 // API для работы с одобренными пользователями (только для админов)
 app.post('/api/approved-users', authenticateToken, async (req, res) => {
   try {

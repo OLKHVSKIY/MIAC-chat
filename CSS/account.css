@@ -147,6 +147,32 @@
     margin-top: 20px;
 }
 
+.password-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 40px; /* Отступ под глазок */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    z-index: 1;
+    user-select: none;
+}
+
+.password-toggle:hover {
+    color: #999;
+}
+
 #change-password-modal .submit-btn {
     padding: 10px 20px;
     background-color: #e58411;
