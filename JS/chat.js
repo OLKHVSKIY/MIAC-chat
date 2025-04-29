@@ -131,11 +131,26 @@ async function loadChat(chatId) {
 
 // New chat button handler
 newChatBtn.addEventListener('click', async () => {
-    if (!hasSentMessage) {
-        alert('Пожалуйста, отправьте хотя бы одно сообщение в текущем чате, прежде чем создавать новый.');
+    if (!activeChat) {
+        await createNewChat();
         return;
     }
-    await createNewChat();
+
+    const chatId = activeChat.dataset.id;
+    try {
+        const messages = await chatStorage.getChatMessages(chatId);
+        const hasUserMessage = messages.some(msg => msg.sender === 'user');
+        
+        if (!hasUserMessage) {
+            showAlert('Пожалуйста, отправьте хотя бы одно сообщение в текущем чате, прежде чем создавать новый.', 'error');
+            return;
+        }
+        
+        await createNewChat();
+    } catch (error) {
+        console.error('Ошибка при проверке сообщений чата:', error);
+        showAlert('Не удалось проверить историю чата', 'error');
+    }
 });
 
 // Rename chat
