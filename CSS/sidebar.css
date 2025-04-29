@@ -18,6 +18,12 @@ aside.hidden {
     transform: translateX(-100%);
 }
 
+#sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 0;
+    overflow: hidden;
+}
+
 #new-chat {
     width: 70%;
     padding: 10px;

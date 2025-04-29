@@ -1,14 +1,17 @@
 main {
     flex: 1;
-    padding: 80px 20px 150px;
+    padding: 0 0 150px;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
-    margin-left: 120px;
+    transition: margin-left 0.3s ease;
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    position: relative;
 }
 
-main.full-width {
+main.sidebar-collapsed {
     margin-left: 0;
+    width: 100%;
 }
 
 .chat-container {
@@ -18,15 +21,14 @@ main.full-width {
     display: flex;
     flex-direction: column;
     flex: 1;
+    padding: 0 20px;
 }
-
 
 #chat-window {
     flex: 1;
     overflow-y: auto;
     margin-bottom: 20px;
     margin-top: 20px;
-    margin-right: 100px;
     width: 100%;
     word-wrap: break-word;
     max-height: calc(100vh - 300px);
@@ -205,4 +207,33 @@ main.full-width {
 .check-icon svg {
     width: 14px;
     height: 14px;
+}
+
+main.sidebar-collapsed .input-container {
+    transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 70px 10px 120px;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .input-container {
+        width: calc(100% - 20px);
+        min-width: unset;
+        transform: translateX(-50%) !important;
+        left: 50%;
+        bottom: 10px;
+    }
+    
+    .chat-container {
+        max-width: 100%;
+        padding: 0 10px;
+    }
 }

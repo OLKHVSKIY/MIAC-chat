@@ -178,5 +178,28 @@
     <script src="http://localhost:4000/JS/codeHighlight.js"></script>
     <script src="http://localhost:4000/JS/changePassword.js"></script>
     <script type="module" src="http://localhost:4000/JS/main.js"></script>
+    <script>
+        // Добавляем обработчик для переключения сайдбара
+        document.getElementById('toggle-sidebar').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.querySelector('main');
+            
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('sidebar-collapsed');
+            
+            // Сохраняем состояние в localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+        
+        // Проверяем состояние сайдбара при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isCollapsed) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.querySelector('main').classList.add('sidebar-collapsed');
+            }
+        });
+    </script>
 </body>
 </html>
