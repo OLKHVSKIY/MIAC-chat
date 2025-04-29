@@ -1,8 +1,6 @@
 /* Аватар пользователя */
-.profile-avatar, .user-avatar {
+.user-avatar {
     position: relative;
-    width: 115px;
-    height: 115px;
     border-radius: 50%;
     background-color: #2d2d2d;
     display: flex;
@@ -14,6 +12,26 @@
     border: 2px solid #444;
     overflow: hidden;
     box-sizing: border-box; /* Учитываем padding в размерах */
+}
+
+.profile-avatar {
+    position: relative;
+    width: 115px !important; /* Принудительно устанавливаем размер */
+    height: 115px !important;
+    min-width: 115px !important; /* Запрещаем уменьшение */
+    min-height: 115px !important;
+    border-radius: 50%;
+    background-color: #2d2d2d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 30px;
+    margin-right: 25px;
+    border: 2px solid #444;
+    overflow: hidden;
+    box-sizing: border-box;
+    flex-shrink: 0; /* Запрещаем сжатие в flex-контейнерах */
 }
 
 .user-avatar {
@@ -45,6 +63,7 @@
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
+    cursor: pointer;
 }
 
 .avatar-edit-icon {

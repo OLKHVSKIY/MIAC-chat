@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const password = document.getElementById('password').value;
         const loginBtn = document.getElementById('loginButton');
         if (loginBtn) loginBtn.disabled = true;
+        
         try {
             const response = await fetch('http://localhost:4000/api/user_login', {
                 method: 'POST',
@@ -48,11 +49,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 credentials: 'include',
                 body: JSON.stringify({ username, password }),
             });
+            
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Ошибка входа');
             }
+            
             const data = await response.json();
+            
             // Сохраняем данные
             if (data.token) {
                 localStorage.setItem('authToken', data.token);
@@ -60,7 +64,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.user) {
                 localStorage.setItem('userData', JSON.stringify(data.user));
             }
-            window.location.href = 'http://localhost:4000/HTML/main.html';
+            
+            // Показываем анимацию перед перенаправлением
+            showLoginAnimation(() => {
+                window.location.href = 'http://localhost:4000/HTML/main.html';
+            });
+            
         } catch (error) {
             console.error('Ошибка входа:', error);
             showAlert(error.message || 'Не удалось войти. Проверьте логин и пароль.', 'error');
@@ -68,6 +77,169 @@ document.addEventListener('DOMContentLoaded', function () {
             if (loginBtn) loginBtn.disabled = false;
         }
     });
+
+    function showLoginAnimation(callback) {
+
+            // Подключаем шрифт Magistral
+    const fontStyle = document.createElement('style');
+    fontStyle.textContent = `
+        @font-face {
+            font-family: 'Magistral-ExtraBold';
+            src: url('/fonts/Magistral-ExtraBold.woff2') format('woff2'),
+                 url('/fonts/Magistral-ExtraBold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+    `;
+    document.head.appendChild(fontStyle);
+        // Создаем элементы анимации
+        const overlay = document.createElement('div');
+        overlay.className = 'login-animation-overlay';
+        
+        const logoContainer = document.createElement('div');
+        logoContainer.className = 'login-animation-logo';
+        
+        const letters = ['М', 'И', 'А', 'Ц'];
+        letters.forEach(letter => {
+            const span = document.createElement('span');
+            span.className = 'login-animation-letter';
+            span.textContent = letter;
+            logoContainer.appendChild(span);
+        });
+        
+        const divider = document.createElement('div');
+        divider.className = 'login-animation-divider';
+        
+        const location = document.createElement('div');
+        location.className = 'login-animation-location';
+        location.textContent = 'САНКТ-ПЕТЕРБУРГ';
+        
+        overlay.appendChild(logoContainer);
+        overlay.appendChild(divider);
+        overlay.appendChild(location);
+        document.body.appendChild(overlay);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+
+
+            .login-animation-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 1); 
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                z-index: 2000;
+                opacity: 0;
+                animation: loginFadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            }
+            
+            .login-animation-logo {
+                display: flex;
+                justify-content: center;
+                align-items: flex-end; /* Изменено с center на flex-end */
+                height: 80px; /* Фиксированная высота контейнера */
+                margin-bottom: 10px;
+            }
+            
+            .login-animation-letter {
+                font-family: 'Magistral-ExtraBold', 'Arial Black', sans-serif;
+                font-size: 80px; /* Уменьшен размер шрифта */
+                line-height: 60px; /* Фиксированный line-height */
+                color: #fff;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                margin: 0 2px;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                opacity: 0;
+            }
+            
+        /* Анимации для Magistral */
+            @keyframes magistralAppear {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.8) translateY(20px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+    
+            .login-animation-letter:nth-child(1) {
+                animation: magistralAppear 0.7s 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+            .login-animation-letter:nth-child(2) {
+                animation: magistralAppear 0.7s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+            .login-animation-letter:nth-child(3) {
+                animation: magistralAppear 0.7s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+            .login-animation-letter:nth-child(4) {
+                animation: magistralAppear 0.7s 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+            
+            .login-animation-divider {
+                width: 150px;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+                margin: 10px 0; /* Уменьшен отступ */
+                opacity: 0;
+                animation: loginFadeIn 0.6s 0.8s ease-out forwards;
+            }
+            
+            .login-animation-location {
+                font-size: 16px;
+                font-weight: 300;
+                color: rgba(255, 255, 255, 0.7);
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                opacity: 0;
+                margin-top: 5px;
+                font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+                animation: loginFadeIn 0.6s 0.9s ease-out forwards;
+            }
+            
+            @keyframes loginFadeIn {
+                to { opacity: 1; }
+            }
+            
+            @keyframes loginFadeOut {
+                to { opacity: 0; }
+            }
+            
+            @keyframes loginLetterAppear {
+                0% { 
+                    opacity: 0; 
+                    transform: translateY(15px);
+                    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+                }
+                100% { 
+                    opacity: 1; 
+                    transform: translateY(0);
+                    text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        setTimeout(() => {
+            overlay.style.animation = 'loginFadeOut 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards';
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                document.head.removeChild(style);
+                if (callback) callback();
+            }, 300);
+        }, 2200);
+    }
+    
+
 
     // Обработчик формы регистрации
     registerForm.addEventListener('submit', async function (event) {
