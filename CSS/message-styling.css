@@ -1,0 +1,124 @@
+/* Code Blocks */
+.dsc-code-container {
+    background: #1E1E1E;
+    border-radius: 8px;
+    margin: 16px 0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: 'SF Mono', 'Roboto Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.dsc-code-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #252526;
+    border-bottom: 1px solid #333;
+}
+
+.dsc-language-badge {
+    background: rgba(90, 93, 94, 0.3);
+    color: #D4D4D4;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 12px;
+}
+
+.dsc-code-caption {
+    color: #9CDCFE;
+    font-size: 13px;
+    flex-grow: 1;
+}
+
+.dsc-copy-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: auto;
+    position: relative;
+    color: #D4D4D4;
+    transition: all 0.2s;
+}
+
+.dsc-copy-button:hover {
+    color: #FFFFFF;
+}
+
+.dsc-copy-icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.dsc-copy-tooltip {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.dsc-copy-button:hover .dsc-copy-tooltip {
+    opacity: 1;
+}
+
+.dsc-code-wrapper {
+    display: flex;
+    overflow-x: auto;
+}
+
+.dsc-line-numbers {
+    padding: 10px 3px 10px 12px;
+    text-align: right;
+    color: #858585;
+    background: #252526;
+    user-select: none;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 20px;
+    border-right: 1px solid #333;
+}
+
+.dsc-line-number {
+    padding: 0 8px 0 0;
+    height: 22px; /* Высота строки кода */
+    line-height: 22px; /* Совпадает с высотой строки кода */
+}
+
+.dsc-code {
+    margin: 0;
+    padding: 12px 16px;
+    flex-grow: 1;
+    overflow-x: auto;
+    color: #D4D4D4;
+    tab-size: 4;
+    line-height: 22px; /* Добавляем фиксированную высоту строки */
+}
+
+.dsc-code code {
+    display: block;
+    white-space: pre;
+    line-height: 22px; /* Совпадает с высотой строки в номерах */
+}
+
+/* Syntax Highlighting */
+.dsc-comment { color: #6A9955; }
+.dsc-string { color: #CE9178; }
+.dsc-keyword { color: #569CD6; font-weight: normal; }
+.dsc-type { color: #4EC9B0; }
+.dsc-function { color: #DCDCAA; }
+.dsc-number { color: #B5CEA8; }
+.dsc-operator { color: #D4D4D4; }

@@ -195,7 +195,11 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
     }
 
     const user = result.rows[0];
-    console.log(`Найден пользователь: ${user.username}`);
+
+    const tiffanyBlue = '\x1b[38;2;129;216;208m';
+    const resetColor = '\x1b[0m'; // Сброс цвета
+    
+    console.log(`Найден пользователь: ${tiffanyBlue}${user.username}${resetColor}`);
     
     res.json({
       username: user.username,

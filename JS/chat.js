@@ -1,3 +1,4 @@
+// Добавьте в начало файла chat.js
 import { chatStorage } from './chatStorage.js';
 
 const API_URL = 'http://192.168.80.210:11434';
@@ -9,6 +10,14 @@ const chatList = document.getElementById('chat-list');
 const newChatBtn = document.getElementById('new-chat');
 window.chatWindow = document.getElementById('chat-window');
 let activeChat = null;
+
+// Проверка и fallback для messageStyling
+if (!window.messageStyling) {
+    window.messageStyling = {
+        processMessageContent: (content) => content.replace(/\n/g, '<br>')
+    };
+    console.warn('messageStyling not loaded, using fallback');
+}
 
 // Обработчик Enter для отправки сообщений
 userInput.addEventListener('keydown', function(e) {
@@ -319,32 +328,68 @@ async function sendMessage() {
 // Helper functions
 function createMessageElement(sender, content, timestamp = null) {
     const container = document.createElement('div');
-    container.classList.add('message-container');
+    container.classList.add('message-container', `${sender}-message-container`);
     
     if (sender === 'bot') {
-        container.innerHTML = `
-            <div class="avatar bot-avatar">
-                <img src="/IMG/miac_short.png" alt="AI Avatar">
-            </div>
-            <div class="message-content">
-                <div class="message bot-message">
-                    ${content.replace(/\n/g, '<br>')}
-                    <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-                </div>
-            </div>
-        `;
-    } else {
-        container.innerHTML = `
-            <div class="message-content">
-                <div class="message user-message">
-                    ${content.replace(/\n/g, '<br>')}
-                    <button class="copy-icon" title="Копировать"><i class="fas fa-copy"></i></button>
-                </div>
-            </div>
-        `;
+        const avatar = document.createElement('div');
+        avatar.classList.add('avatar', 'bot-avatar');
+        avatar.innerHTML = '<img src="/IMG/miac_short.png" alt="AI Avatar">';
+        container.appendChild(avatar);
     }
     
+    const messageContent = document.createElement('div');
+    messageContent.classList.add('message-content');
+    
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', `${sender}-message`);
+    
+    try {
+        // Обрабатываем содержимое с учетом markdown и подсветки кода
+        const processedContent = window.messageStyling.processMessageContent(content);
+        messageElement.innerHTML = processedContent;
+    } catch (error) {
+        console.error('Error processing message content:', error);
+        messageElement.innerHTML = content.replace(/\n/g, '<br>');
+    }
+    
+    // Добавляем кнопку копирования
+    const copyButton = document.createElement('button');
+    copyButton.className = 'copy-icon';
+    copyButton.title = 'Копировать';
+    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+    messageElement.appendChild(copyButton);
+    
+    // Добавляем временную метку, если она есть
+    if (timestamp) {
+        const timeElement = document.createElement('div');
+        timeElement.classList.add('message-time');
+        timeElement.textContent = formatTime(timestamp);
+        messageElement.appendChild(timeElement);
+    }
+    
+    messageContent.appendChild(messageElement);
+    container.appendChild(messageContent);
+    
+    // После добавления сообщения в DOM
+    setTimeout(() => {
+        if (window.messageStyling && window.messageStyling.initCopyButtons) {
+            window.messageStyling.initCopyButtons();
+        }
+    }, 0);
+        
     return container;
+}
+
+// Вспомогательная функция для форматирования времени
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}.${month} ${hours}:${minutes}`;
 }
 
 function renderChatList(chats) {

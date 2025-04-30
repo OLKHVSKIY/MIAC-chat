@@ -127,6 +127,10 @@ main.sidebar-collapsed {
     display: inline-block;
 }
 
+.message-time{
+    color: #ccc;
+}
+
 /* Стили для индикатора набора сообщения */
 .typing-message {
     display: flex;
@@ -236,4 +240,13 @@ main.sidebar-collapsed .input-container {
         max-width: 100%;
         padding: 0 10px;
     }
+}
+
+.message-streaming {
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
 }

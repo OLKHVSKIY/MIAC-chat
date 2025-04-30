@@ -201,26 +201,37 @@ async function streamResponse({ container, message, copyButton }) {
             const chunk = decoder.decode(value, { stream: true });
             accumulatedText += chunk;
             
-            // Обрабатываем новые данные
-            const { text: processedText } = window.codeHighlight.highlightCode(accumulatedText);
+            // Используем message-styling вместо codeHighlight
+            const processedHtml = window.messageStyling.processMessageContent(accumulatedText);
             
-            // Создаем временный элемент для разбора HTML
+            // Создаём временный контейнер
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = processedText;
+            tempDiv.innerHTML = processedHtml;
             
-            // Полностью заменяем содержимое сообщения
-            const newContent = extractContent(tempDiv);
+            // Полностью заменяем содержимое
             message.innerHTML = '';
-            message.appendChild(newContent);
-            message.appendChild(copyButton);
+            message.append(...tempDiv.childNodes);
+            
+            // Сохраняем кнопку копирования (теперь она в message-styling)
+            window.messageStyling.initCopyButtons();
+
+            // Внутри цикла while:
+            if (chunk.length > 1000) {
+            message.innerHTML = processedHtml + '<div class="message-streaming">...</div>';
+            }
             
             // Прокручиваем чат
             chatWindow.scrollTop = chatWindow.scrollHeight;
+            
+            // Оптимизация: пропускаем рендеринг при быстром потоке
+            await new Promise(r => setTimeout(r, 50)); 
         }
     } finally {
         chatState.isTyping = false;
-        // Добавляем обработчики копирования
-        addCopyHandlers();
+        // Финализируем Markdown-разметку
+        const finalHtml = window.messageStyling.processMessageContent(accumulatedText);
+        message.innerHTML = finalHtml;
+        window.messageStyling.initCopyButtons();
     }
 }
 
