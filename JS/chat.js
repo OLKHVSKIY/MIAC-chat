@@ -434,6 +434,45 @@ function setActiveChatById(chatId) {
     }
 }
 
+// Показать/скрыть кнопку прокрутки вниз
+function toggleScrollButton() {
+    const scrollButton = document.getElementById('scroll-to-bottom');
+    const chatWindow = document.getElementById('chat-window');
+    
+    // Показываем кнопку, если есть прокрутка
+    if (chatWindow.scrollHeight > chatWindow.clientHeight + 100) {
+        scrollButton.classList.add('visible');
+    } else {
+        scrollButton.classList.remove('visible');
+    }
+}
+
+// Обработчик прокрутки
+document.getElementById('chat-window').addEventListener('scroll', function() {
+    const scrollButton = document.getElementById('scroll-to-bottom');
+    const chatWindow = this;
+    
+    // Скрываем кнопку, если уже внизу
+    if (chatWindow.scrollTop + chatWindow.clientHeight >= chatWindow.scrollHeight - 20) {
+        scrollButton.classList.remove('visible');
+    } else {
+        scrollButton.classList.add('visible');
+    }
+});
+
+// Прокрутка вниз при клике
+document.getElementById('scroll-to-bottom').addEventListener('click', function() {
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.scrollTo({
+        top: chatWindow.scrollHeight,
+        behavior: 'smooth'
+    });
+});
+
+// Инициализация при загрузке и после добавления сообщений
+document.addEventListener('DOMContentLoaded', toggleScrollButton);
+window.addEventListener('resize', toggleScrollButton);
+
 function addTypingIndicator() {
     const typingContainer = document.createElement('div');
     typingContainer.classList.add('message-container');
@@ -465,10 +504,40 @@ function addTypingIndicator() {
 }
 
 function addCopyHandlers() {
-    document.querySelectorAll('.copy-icon').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-            const messageText = e.target.closest('.message').textContent.trim();
-            navigator.clipboard.writeText(messageText);
+    document.querySelectorAll('.copy-icon').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const messageElement = e.target.closest('.message');
+            
+            // Создаем временный элемент для извлечения текста без времени
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = messageElement.innerHTML;
+            
+            // Удаляем элемент с временем, если он есть
+            const timeElement = tempDiv.querySelector('.message-time');
+            if (timeElement) {
+                timeElement.remove();
+            }
+            
+            // Удаляем кнопку копирования из текста
+            const copyButton = tempDiv.querySelector('.copy-icon');
+            if (copyButton) {
+                copyButton.remove();
+            }
+            
+            // Получаем чистый текст без времени и кнопки
+            const textToCopy = tempDiv.textContent.trim();
+            
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                const icon = button.querySelector('i');
+                icon.classList.replace('fa-copy', 'fa-check');
+                
+                setTimeout(() => {
+                    icon.classList.replace('fa-check', 'fa-copy');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
         });
     });
 }

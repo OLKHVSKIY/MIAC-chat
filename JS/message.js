@@ -278,8 +278,26 @@ function showErrorMessage(message) {
 function addCopyHandlers() {
     document.querySelectorAll('.copy-icon').forEach(button => {
         button.addEventListener('click', async (e) => {
-            const message = e.target.closest('.message');
-            const textToCopy = message.textContent.replace('Копировать', '').trim();
+            const messageElement = e.target.closest('.message');
+            
+            // Создаем временный элемент для извлечения текста без времени
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = messageElement.innerHTML;
+            
+            // Удаляем элемент с временем, если он есть
+            const timeElement = tempDiv.querySelector('.message-time');
+            if (timeElement) {
+                timeElement.remove();
+            }
+            
+            // Удаляем кнопку копирования из текста
+            const copyButton = tempDiv.querySelector('.copy-icon');
+            if (copyButton) {
+                copyButton.remove();
+            }
+            
+            // Получаем чистый текст без времени и кнопки
+            const textToCopy = tempDiv.textContent.trim();
             
             try {
                 await navigator.clipboard.writeText(textToCopy);
