@@ -485,6 +485,16 @@ function toggleScrollButton() {
     }
 }
 
+document.getElementById('user-input').addEventListener('focus', () => {
+    document.getElementById('scroll-to-bottom').style.display = 'none';
+});
+
+document.getElementById('user-input').addEventListener('blur', () => {
+    const chatWindow = document.getElementById('chat-window');
+    const atBottom = chatWindow.scrollHeight - chatWindow.clientHeight <= chatWindow.scrollTop + 10;
+    document.getElementById('scroll-to-bottom').style.display = atBottom ? 'none' : 'flex';
+});
+
 // Обработчик прокрутки
 document.getElementById('chat-window').addEventListener('scroll', function() {
     const scrollButton = document.getElementById('scroll-to-bottom');
