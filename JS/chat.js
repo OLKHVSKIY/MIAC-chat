@@ -392,38 +392,76 @@ function formatTime(timestamp) {
     return `${day}.${month} ${hours}:${minutes}`;
 }
 
+// Обновите функцию renderChatList в chat.js
 function renderChatList(chats) {
+    const chatList = document.getElementById('chat-list');
     chatList.innerHTML = '';
     
-    chats.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.classList.add('chat-item');
-        chatItem.dataset.id = chat.chat_id;
-        chatItem.innerHTML = `
-            <span>${chat.title}</span>
-            <div class="chat-actions">
-                <button class="rename-chat" title="Переименовать"><i class="fas fa-edit"></i></button>
-                <button class="delete-chat" title="Удалить"><i class="fas fa-trash"></i></button>
-            </div>
-        `;
+    // Группируем чаты по датам
+    const groupedChats = chats.reduce((groups, chat) => {
+        const dateKey = chatStorage.formatChatDate(chat.last_activity || chat.created_at);
+        if (!groups[dateKey]) {
+            groups[dateKey] = [];
+        }
+        groups[dateKey].push(chat);
+        return groups;
+    }, {});
+    
+    // Сортируем группы по дате (новые сначала)
+    const sortedGroups = Object.entries(groupedChats).sort((a, b) => {
+        // Приоритет для стандартных групп
+        const priority = {
+            'Сегодня': 0,
+            'Вчера': 1,
+            '7 дней': 2,
+            '30 дней': 3
+        };
         
-        // Event handlers
-        chatItem.querySelector('.rename-chat').addEventListener('click', (e) => {
-            e.stopPropagation();
-            renameChat(chatItem);
-        });
-
-        chatItem.querySelector('.delete-chat').addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteChat(chatItem);
-        });
-
-        chatItem.addEventListener('click', () => {
-            setActiveChat(chatItem);
-            loadChat(chat.chat_id);
-        });
+        const aPriority = priority[a[0]] ?? 4;
+        const bPriority = priority[b[0]] ?? 4;
         
-        chatList.appendChild(chatItem);
+        return aPriority - bPriority;
+    });
+    
+    // Рендерим группы
+    sortedGroups.forEach(([groupName, groupChats]) => {
+        // Добавляем заголовок группы
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'chat-group-header';
+        groupHeader.textContent = groupName;
+        chatList.appendChild(groupHeader);
+        
+        // Добавляем чаты группы
+        groupChats.forEach(chat => {
+            const chatItem = document.createElement('div');
+            chatItem.classList.add('chat-item');
+            chatItem.dataset.id = chat.chat_id;
+            chatItem.innerHTML = `
+                <span>${chat.title}</span>
+                <div class="chat-actions">
+                    <button class="rename-chat" title="Переименовать"><i class="fas fa-edit"></i></button>
+                    <button class="delete-chat" title="Удалить"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            
+            // Event handlers
+            chatItem.querySelector('.rename-chat').addEventListener('click', (e) => {
+                e.stopPropagation();
+                renameChat(chatItem);
+            });
+
+            chatItem.querySelector('.delete-chat').addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteChat(chatItem);
+            });
+
+            chatItem.addEventListener('click', () => {
+                setActiveChat(chatItem);
+                loadChat(chat.chat_id);
+            });
+            
+            chatList.appendChild(chatItem);
+        });
     });
 }
 

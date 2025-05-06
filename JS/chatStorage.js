@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:4000/api'; // Ваш базовый URL API
+const API_BASE_URL = 'http://localhost:4000/api'; // Базовый URL API
 
 class ChatStorage {
     constructor() {
@@ -8,6 +8,24 @@ class ChatStorage {
     // Получить токен аутентификации
     getAuthToken() {
         return localStorage.getItem('authToken') || '';
+    }
+
+    // Форматирование даты чата (для отображения группировки)
+    formatChatDate(timestamp) {
+        const now = new Date();
+        const date = new Date(timestamp);
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Сегодня';
+        if (diffDays === 1) return 'Вчера';
+        if (diffDays < 7) return '7 дней';
+        if (diffDays < 30) return '30 дней';
+        
+        // Для более старых дат — месяц и год
+        return date.toLocaleDateString('ru-RU', { 
+            year: 'numeric', 
+            month: 'long' 
+        }).replace(' г.', '');
     }
 
     // Создать новый чат
@@ -23,7 +41,7 @@ class ChatStorage {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при создании чата');
+                throw new Error(`Ошибка при создании чата: ${response.status}`);
             }
 
             const data = await response.json();
@@ -43,12 +61,17 @@ class ChatStorage {
                     'Authorization': `Bearer ${this.getAuthToken()}`
                 }
             });
-
+    
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке чатов');
             }
-
-            return await response.json();
+    
+            const chats = await response.json();
+            // Добавляем дату последней активности (если её нет в ответе сервера)
+            return chats.map(chat => ({
+                ...chat,
+                last_activity: chat.last_activity || chat.created_at
+            }));
         } catch (error) {
             console.error('ChatStorage.getUserChats error:', error);
             throw error;
@@ -65,7 +88,7 @@ class ChatStorage {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при загрузке сообщений');
+                throw new Error(`Ошибка при загрузке сообщений: ${response.status}`);
             }
 
             return await response.json();
@@ -92,7 +115,7 @@ class ChatStorage {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при сохранении сообщения');
+                throw new Error(`Ошибка при сохранении сообщения: ${response.status}`);
             }
 
             return await response.json();
@@ -115,7 +138,7 @@ class ChatStorage {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при обновлении чата');
+                throw new Error(`Ошибка при обновлении названия чата: ${response.status}`);
             }
 
             return await response.json();
@@ -136,7 +159,7 @@ class ChatStorage {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при удалении чата');
+                throw new Error(`Ошибка при удалении чата: ${response.status}`);
             }
 
             return await response.json();
