@@ -517,6 +517,44 @@ document.getElementById('scroll-to-bottom').addEventListener('click', function()
     });
 });
 
+function updateScrollButtonPosition() {
+    const scrollButton = document.getElementById('scroll-to-bottom');
+    const inputContainer = document.querySelector('.input-container');
+    
+    if (!scrollButton || !inputContainer) return;
+    
+    // Получаем положение поля ввода
+    const inputRect = inputContainer.getBoundingClientRect();
+    const inputCenter = inputRect.left + inputRect.width / 2;
+    
+    // Плавно перемещаем кнопку к новой позиции
+    scrollButton.style.transition = 'left 0.2s ease, transform 0.2s ease';
+    scrollButton.style.left = `${inputCenter}px`;
+    
+    // После завершения анимации убираем transition, чтобы hover-эффекты работали плавно
+    setTimeout(() => {
+        scrollButton.style.transition = 'transform 0.2s ease';
+    }, 100);
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    updateScrollButtonPosition();
+    
+    // Обработчик изменения размера окна
+    window.addEventListener('resize', updateScrollButtonPosition);
+    
+    // Модифицированный обработчик сайдбара
+    document.getElementById('toggle-sidebar').addEventListener('click', function() {
+        // Запускаем обновление позиции одновременно с анимацией сайдбара
+        updateScrollButtonPosition();
+        
+        // Дополнительная проверка после завершения анимации
+        setTimeout(updateScrollButtonPosition, 350);
+    });
+});
+
+
 // Инициализация при загрузке и после добавления сообщений
 document.addEventListener('DOMContentLoaded', toggleScrollButton);
 window.addEventListener('resize', toggleScrollButton);

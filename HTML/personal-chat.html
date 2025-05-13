@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личные сообщения</title>
+    <link rel="stylesheet" href="/CSS/personal-chat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Боковая панель с чатами -->
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <h3>Чаты</h3>
+                <button id="new-chat-btn" class="sidebar-action" title="Новый чат">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button id="minimize-sidebar" class="sidebar-toggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="chat-search" placeholder="Поиск...">
+                <i class="fas fa-search"></i>
+                <div class="search-results" id="search-results"></div>
+            </div>
+            <div class="chat-list" id="chat-list">
+                <!-- Список чатов будет загружен через JS -->
+            </div>
+        </div>
+
+        <!-- Основное окно чата -->
+        <div class="chat-main">
+            <div class="chat-header">
+                <div class="chat-partner-info">
+                    <img id="partner-avatar" src="" alt="Аватар">
+                    <div>
+                        <h3 id="partner-name">Выберите чат</h3>
+                        <p id="partner-status" class="offline">offline</p>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button id="view-profile" title="Профиль"><i class="fas fa-user"></i></button>
+                    <button id="search-in-chat" title="Поиск"><i class="fas fa-search"></i></button>
+                    <button id="chat-menu" title="Меню"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Сообщения будут загружены через JS -->
+                <div class="empty-chat" id="empty-chat">
+                    <i class="fas fa-comments"></i>
+                    <p>Выберите чат для начала общения</p>
+                </div>
+            </div>
+
+            <div class="chat-input-container" id="chat-input-container">
+                <div class="attachment-options">
+                    <button id="attach-file" title="Прикрепить файл"><i class="fas fa-paperclip"></i></button>
+                    <input type="file" id="file-input" multiple style="display: none;">
+                </div>
+                <div class="message-input-container">
+                    <textarea id="message-input" placeholder="Введите сообщение..."></textarea>
+                    <button id="send-message" title="Отправить"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель профиля пользователя -->
+        <div class="profile-panel" id="profile-panel">
+            <div class="profile-header">
+                <button id="close-profile"><i class="fas fa-arrow-left"></i></button>
+                <h3>Профиль</h3>
+            </div>
+            <div class="profile-content">
+                <div class="profile-avatar-container">
+                    <img id="profile-avatar" src="" alt="Аватар">
+                    <span id="profile-status" class="status-offline"></span>
+                </div>
+                <h2 id="profile-name"></h2>
+                <p id="profile-position"></p>
+                <p id="profile-phone"><i class="fas fa-phone"></i> <span></span></p>
+                <p id="profile-telegram"><i class="fab fa-telegram"></i> <span></span></p>
+
+                <div class="profile-section">
+                    <h4>Медиа, файлы и ссылки</h4>
+                    <div class="media-grid" id="media-grid">
+                        <!-- Медиафайлы будут загружены через JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно нового чата -->
+        <div class="modal" id="new-chat-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Новый чат</h3>
+                    <button id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-user-container">
+                        <input type="text" id="user-search" placeholder="Начните вводить имя...">
+                        <div class="user-search-results" id="user-search-results"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/JS/personal-chat.js"></script>
+</body>
+</html>

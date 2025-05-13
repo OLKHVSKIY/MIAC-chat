@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             const data = await response.json();
+
+            // В обработчике успешного входа (в loginForm.addEventListener('submit'))
+            if (data.token) {
+                localStorage.setItem('authToken', data.token);
+            }
+            if (data.user) {
+                localStorage.setItem('userData', JSON.stringify(data.user));
+            }
             
             // Сохраняем данные
             if (data.token) {
