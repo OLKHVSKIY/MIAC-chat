@@ -35,5 +35,26 @@ function updateInputContainerPosition() {
     }
 }
 
+
+// Функция для обновления высоты сайдбара
+function updateSidebarHeight() {
+    const sidebar = document.getElementById('sidebar');
+    const windowHeight = window.innerHeight;
+    const headerHeight = 95; // Высота вашего header
+    
+    // Если высота окна меньше (высота сайдбара + header + отступы)
+    if (windowHeight < 840 + headerHeight + 30) {
+        sidebar.classList.add('sidebar-compact');
+    } else {
+        sidebar.classList.remove('sidebar-compact');
+    }
+}
+
+// Инициализация и обработка ресайза
+document.addEventListener('DOMContentLoaded', function() {
+    updateSidebarHeight();
+    window.addEventListener('resize', updateSidebarHeight);
+});
+
 // Инициализация состояния при загрузке страницы
 handleResize();

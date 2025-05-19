@@ -16,7 +16,11 @@
 
 .modal-content {
     background-color: #2b2a2a;
+<<<<<<< HEAD
+    border-radius: 20px;
+=======
     border-radius: 12px;
+>>>>>>> b245984cb78872e3b5a799a944ff005b9f5ee997
     width: 800px;
     height: 500px;
     max-width: 90%;
@@ -25,6 +29,11 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+<<<<<<< HEAD
+    border: 1px solid var(--glass-border);
+
+=======
+>>>>>>> b245984cb78872e3b5a799a944ff005b9f5ee997
 }
 
 .modal-header {

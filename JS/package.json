@@ -19,10 +19,20 @@
     "express": "^4.21.2",
     "express-rate-limit": "^6.8.1",
     "helmet": "^7.1.0",
+<<<<<<< HEAD
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mime-types": "^3.0.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "path": "^0.12.7",
+    "pg": "^8.16.0",
+=======
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.2",
     "pg": "^8.14.1",
+>>>>>>> b245984cb78872e3b5a799a944ff005b9f5ee997
     "pg-pool": "^3.6.1",
     "winston": "^3.11.0",
     "ws": "^8.18.2"

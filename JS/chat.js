@@ -138,7 +138,6 @@ async function loadChat(chatId) {
     }
 }
 
-// New chat button handler
 newChatBtn.addEventListener('click', async () => {
     if (!activeChat) {
         await createNewChat();

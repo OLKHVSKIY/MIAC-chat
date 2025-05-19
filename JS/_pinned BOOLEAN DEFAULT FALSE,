@@ -1,0 +1,36 @@
+relation "users" already exists, skipping
+None
+
+CREATE TABLE
+relation "roles" already exists, skipping
+None
+
+CREATE TABLE
+relation "positions" already exists, skipping
+None
+
+CREATE TABLE
+relation "approved_users" already exists, skipping
+None
+
+CREATE TABLE
+relation "personal_chats" already exists, skipping
+None
+
+CREATE TABLE
+relation "personal_messages" already exists, skipping
+None
+
+CREATE TABLE
+relation "attachments" already exists, skipping
+None
+
+CREATE TABLE
+relation "chats" already exists, skipping
+None
+
+CREATE TABLE
+relation "messages" already exists, skipping
+None
+
+CREATE TABLE

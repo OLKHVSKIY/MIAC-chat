@@ -1,13 +1,37 @@
-header {
-    background-color: #191a1d;
-    padding: 5px 25px; /* Отступы внутри шапки */
-    display: flex;
-    align-items: center;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
-    box-sizing: border-box; /* Учитываем padding в общей ширине */
-}
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-blur: 10px;
+            --border-radius-large: 45px;
+        }
+
+        /* iOS-style header */
+        header {
+                background-color: #191a1d;
+
+            border-bottom: 1px solid var(--glass-border);
+            border-radius: 0 0 var(--border-radius-large) var(--border-radius-large);
+            padding: 10px 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+                .header-controls {
+            position: absolute;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
 
 #toggle-sidebar {
     background: none;
@@ -17,6 +41,20 @@ header {
     cursor: pointer;
     margin-right: 20px;
 }
+
+
+        .logo {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logo img {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+            margin-left: 110px;
+        }
 
 .logout-button {
     background: none;
@@ -63,6 +101,7 @@ header {
     transition: all 0.3s ease;
     height: 32px;
     box-sizing: border-box;
+    min-width: 125px;
 }
 
 .selected-model:hover {
